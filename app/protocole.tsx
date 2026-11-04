@@ -16,7 +16,7 @@ export default function ProtocoleScreen() {
   const selected = PROTOCOLS.find((p) => p.id === selectedId) ?? protocol;
 
   return (
-    <Screen>
+    <Screen bottom>
       <ScrollView contentContainerStyle={{ padding: 20, gap: 12 }}>
         <View style={styles.head}>
           <Pressable accessibilityLabel="Retour" onPress={() => router.back()} style={styles.back}>
@@ -39,10 +39,7 @@ export default function ProtocoleScreen() {
                 <Text style={[styles.badgeText, on && { color: '#FFFFFF' }]}>{p.label}</Text>
               </View>
               <View style={{ flex: 1, gap: 2 }}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.name}>{p.name}</Text>
-                  {p.medical && <Text style={styles.medical}>Avis médical</Text>}
-                </View>
+                <Text style={styles.name}>{p.name}</Text>
                 <Text style={styles.hours}>
                   {p.fastHours} h de jeûne{p.eatHours > 0 ? ` · ${p.eatHours} h de repas` : ''}
                 </Text>
@@ -65,11 +62,6 @@ export default function ProtocoleScreen() {
           }}
           style={{ marginTop: 4 }}
         />
-
-        <Text style={styles.disclaimer}>
-          Le jeûne n’est pas adapté à tout le monde (diabète, grossesse, troubles alimentaires, traitements…).
-          Demande l’avis d’un médecin avant de jeûner, surtout pour les protocoles longs.
-        </Text>
       </ScrollView>
     </Screen>
   );
@@ -100,18 +92,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.soft,
   },
   badgeText: { fontSize: 15, fontWeight: '800', color: colors.emeraldText },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   name: { fontSize: 15, fontWeight: '800', color: colors.text },
-  medical: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.sosText,
-    backgroundColor: colors.sosTint,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
   hours: { fontSize: 12.5, fontWeight: '600', color: colors.muted },
   note: { fontSize: 12.5, color: colors.body },
   disclaimer: { fontSize: 11, lineHeight: 16, color: colors.muted, textAlign: 'center' },

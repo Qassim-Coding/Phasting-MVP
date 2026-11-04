@@ -15,6 +15,7 @@ export default function RootLayout() {
         <Stack.Screen name="mon-jeune" />
         <Stack.Screen name="craquer" options={{ presentation: 'modal' }} />
         <Stack.Screen name="nouvelle-note" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="ajouter-poids" options={{ presentation: 'modal' }} />
       </Stack>
     </FastProvider>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, titleFont } from '../theme';
 import { OutlineButton, PrimaryButton } from './ui';
@@ -15,13 +16,14 @@ type Props = {
 
 // Petite feuille qui monte du bas, pour modifier une valeur (pourquoi, objectif de poids…).
 export function EditSheet({ visible, title, onSave, onCancel, saveLabel = 'Enregistrer', children }: Props) {
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.backdrop}
       >
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { paddingBottom: 20 + insets.bottom }]}>
           <Text style={styles.title}>{title}</Text>
           {children}
           <PrimaryButton label={saveLabel} onPress={onSave} />

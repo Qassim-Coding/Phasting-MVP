@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ProgressRing } from '../components/ProgressRing';
 import { Card, PrimaryButton, Screen, SectionTitle, TextButton } from '../components/ui';
 import { useFast } from '../data/FastContext';
-import { loadWhy } from '../data/storage';
-import { formatHoursMinutes } from '../logic/dates';
+import { type Craving, type TriggerId, addCraving, loadCravings, loadWhy } from '../data/storage';
+import { TRIGGERS, summarizeCravings, triggerLabel } from '../logic/cravings';
+import { relativeDayLabel, formatHoursMinutes } from '../logic/dates';
+import { heldHoursOf } from '../logic/streak';
 import { colors, titleFont } from '../theme';
 import { formatClockWithDay, formatMinutes, getPhase } from '../widgets/fastState';
 
@@ -17,18 +19,24 @@ const HELP: { icon: React.ComponentProps<typeof Ionicons>['name']; title: string
   { icon: 'water-outline', title: 'Un grand verre d’eau ou un thé sans sucre', text: 'Ça occupe la bouche et calme l’estomac.' },
   { icon: 'walk-outline', title: 'Sors marcher dix minutes', text: 'Changer d’air aide à penser à autre chose.' },
   { icon: 'exit-outline', title: 'Quitte la cuisine', text: 'Éloigne-toi de la nourriture et occupe tes mains.' },
+  { icon: 'leaf-outline', title: 'Respire lentement', text: 'Inspire 4 secondes, souffle 6 secondes, six fois de suite.' },
+  { icon: 'happy-outline', title: 'Brosse-toi les dents', text: 'Le goût de menthe coupe l’envie de grignoter.' },
+  { icon: 'chatbubble-outline', title: 'Écris-moi un message à toi-même', text: 'Une phrase dans Notes : tu verras plus tard ce qui t’a aidé.' },
 ];
 
 // Écran de secours : "J'ai envie de craquer".
 export default function CraquerScreen() {
   const router = useRouter();
-  const { now, fast, streak, stop } = useFast();
+  const { now, fast, streak, history, stop } = useFast();
   const [secondsLeft, setSecondsLeft] = useState(WAIT_SECONDS);
   const [running, setRunning] = useState(false);
   const [why, setWhy] = useState('');
+  const [cravings, setCravings] = useState<Craving[]>([]);
+  const [trigger, setTrigger] = useState<TriggerId | null>(null);
 
   useEffect(() => {
     loadWhy().then(setWhy);
+    loadCravings().then(setCravings);
   }, []);
 
   useEffect(() => {
@@ -51,6 +59,10 @@ export default function CraquerScreen() {
   const targetMs = fast.targetHours * 3600000;
   const remaining = Math.max(0, targetMs - elapsed);
   const phase = getPhase(elapsed);
+  const elapsedHours = elapsed / 3600000;
+
+  const summary = useMemo(() => summarizeCravings(cravings), [cravings]);
+  const recordHeld = useMemo(() => (history.length > 0 ? Math.max(...history.map(heldHoursOf)) : null), [history]);
 
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
   const ss = String(secondsLeft % 60).padStart(2, '0');
@@ -65,6 +77,17 @@ export default function CraquerScreen() {
     }
   };
 
+  // On garde une trace de chaque envie : elle servira à comprendre quand et pourquoi elles arrivent.
+  const logCraving = async (outcome: Craving['outcome']) => {
+    await addCraving({
+      id: String(Date.now()),
+      at: Date.now(),
+      fastHours: fasting ? elapsedHours : null,
+      outcome,
+      ...(trigger ? { trigger } : {}),
+    });
+  };
+
   const confirmStop = () => {
     Alert.alert(
       'Terminer le jeûne ici ?',
@@ -74,6 +97,7 @@ export default function CraquerScreen() {
         {
           text: 'Terminer',
           onPress: async () => {
+            await logCraving('craque');
             await stop();
             router.replace('/');
           },
@@ -83,7 +107,7 @@ export default function CraquerScreen() {
   };
 
   return (
-    <Screen>
+    <Screen bottom>
       <ScrollView contentContainerStyle={{ padding: 20, gap: 14 }}>
         <Pressable accessibilityLabel="Fermer" onPress={() => router.back()} style={styles.close}>
           <Ionicons name="close" size={24} color={colors.text} />
@@ -106,6 +130,16 @@ export default function CraquerScreen() {
             </Text>
           ) : (
             <Text style={styles.heroText}>La faim vient par vagues et retombe d’elle-même.</Text>
+          )}
+          {fasting && recordHeld !== null && recordHeld > 0 && (
+            <View style={styles.chip}>
+              <Ionicons name="trophy-outline" size={16} color={colors.sos} />
+              <Text style={styles.chipText}>
+                {elapsedHours >= recordHeld
+                  ? 'Tu es en train de battre ton record !'
+                  : `Ton record : ${formatHoursMinutes(recordHeld)}, encore ${formatHoursMinutes(recordHeld - elapsedHours)}`}
+              </Text>
+            </View>
           )}
           {fasting && phase.nextName && phase.minutesToNext !== null && (
             <View style={styles.chip}>
@@ -132,6 +166,36 @@ export default function CraquerScreen() {
           </View>
         </Card>
 
+        {secondsLeft === 0 && !running && (
+          <Card style={{ borderRadius: 22, backgroundColor: '#D7EFE3' }}>
+            <Text style={styles.cardTitle}>Dix minutes passées.</Text>
+            <Text style={styles.muted}>L’envie est-elle retombée ? Si oui, tu viens de la laisser passer toi-même.</Text>
+          </Card>
+        )}
+
+        <Card style={{ borderRadius: 26, gap: 12 }}>
+          <View style={{ gap: 2 }}>
+            <Text style={styles.cardTitle}>Qu’est-ce qui te donne envie ?</Text>
+            <Text style={styles.muted}>Facultatif. Ça t’aidera à repérer tes déclencheurs.</Text>
+          </View>
+          <View style={styles.triggers}>
+            {TRIGGERS.map((t) => {
+              const on = trigger === t.id;
+              return (
+                <Pressable
+                  key={t.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  onPress={() => setTrigger(on ? null : t.id)}
+                  style={[styles.trigger, on && styles.triggerOn]}
+                >
+                  <Text style={[styles.triggerText, on && { color: '#FFFFFF' }]}>{t.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Card>
+
         <Card style={{ borderRadius: 26, gap: 14 }}>
           <SectionTitle>Pour te sortir de là</SectionTitle>
           {HELP.map((h) => (
@@ -145,6 +209,47 @@ export default function CraquerScreen() {
               </View>
             </View>
           ))}
+        </Card>
+
+        <Card style={{ borderRadius: 26, gap: 12 }}>
+          <SectionTitle>Tes envies passées</SectionTitle>
+          {summary.total === 0 ? (
+            <Text style={styles.muted}>
+              Ta première envie surmontée apparaîtra ici. Appuie sur « Je tiens » quand elle sera passée.
+            </Text>
+          ) : (
+            <>
+              <View style={styles.tiles}>
+                <View style={styles.tile}>
+                  <Text style={styles.tileValue}>{summary.held}</Text>
+                  <Text style={styles.tileLabel}>{summary.held > 1 ? 'envies surmontées' : 'envie surmontée'}</Text>
+                </View>
+                <View style={styles.tile}>
+                  <Text style={styles.tileValue}>{summary.rate !== null ? `${Math.round(summary.rate * 100)} %` : '—'}</Text>
+                  <Text style={styles.tileLabel}>tenues sur {summary.total}</Text>
+                </View>
+              </View>
+              {summary.lastHeld && (
+                <Text style={styles.muted}>
+                  Dernière fois que tu as tenu : {relativeDayLabel(summary.lastHeld.at, now)}
+                  {summary.lastHeld.fastHours !== null
+                    ? `, après ${formatHoursMinutes(summary.lastHeld.fastHours)} de jeûne`
+                    : ''}
+                  .
+                </Text>
+              )}
+              {summary.typicalHour !== null && (
+                <Text style={styles.muted}>
+                  Tes envies arrivent souvent vers <Text style={styles.strong}>{summary.typicalHour} h de jeûne</Text>.
+                </Text>
+              )}
+              {summary.topTrigger && (
+                <Text style={styles.muted}>
+                  Ton déclencheur le plus fréquent : <Text style={styles.strong}>{triggerLabel(summary.topTrigger).toLowerCase()}</Text>.
+                </Text>
+              )}
+            </>
+          )}
         </Card>
 
         <Card dark style={{ borderRadius: 26 }}>
@@ -173,7 +278,14 @@ export default function CraquerScreen() {
           </View>
         )}
 
-        <PrimaryButton label="Je tiens" onPress={() => router.back()} style={{ marginTop: 4 }} />
+        <PrimaryButton
+          label="Je tiens"
+          onPress={async () => {
+            await logCraving('tenu');
+            router.back();
+          }}
+          style={{ marginTop: 4 }}
+        />
         {fasting && <TextButton label="Terminer le jeûne ici, sans jugement" onPress={confirmStop} />}
       </ScrollView>
     </Screen>
@@ -223,4 +335,21 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   streakText: { flex: 1, fontSize: 13.5, lineHeight: 20, color: colors.body },
+  triggers: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  trigger: {
+    minHeight: 44,
+    paddingHorizontal: 14,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  triggerOn: { backgroundColor: colors.emerald, borderColor: colors.emerald },
+  triggerText: { fontSize: 13, fontWeight: '800', color: colors.body },
+  tiles: { flexDirection: 'row', gap: 10 },
+  tile: { flex: 1, backgroundColor: '#F2F8F3', borderRadius: 18, padding: 14, gap: 2 },
+  tileValue: { fontFamily: titleFont, fontSize: 28, fontWeight: '600', color: colors.text },
+  tileLabel: { fontSize: 12, fontWeight: '600', color: colors.muted },
 });

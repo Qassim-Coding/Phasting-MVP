@@ -4,11 +4,11 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { EditSheet } from '../../components/EditSheet';
+import { NoteCard } from '../../components/NoteCard';
 import { Sparkline } from '../../components/Sparkline';
 import { Card, OutlineButton, Screen } from '../../components/ui';
-import { type Note, type NoteKind, saveGoal, saveWhy } from '../../data/storage';
+import { type NoteKind, saveGoal, saveWhy } from '../../data/storage';
 import { useNotesData } from '../../data/useNotesData';
-import { formatDayLong, formatHoursMinutes } from '../../logic/dates';
 import { formatKg, parseKg, weightInfo } from '../../logic/weight';
 import { colors, titleFont } from '../../theme';
 
@@ -21,13 +21,6 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: 'doute', label: 'Doutes' },
   { id: 'victoire', label: 'Victoires' },
 ];
-
-const TAGS: Record<NoteKind, { label: string; bg: string; color: string }> = {
-  victoire: { label: 'Victoire', bg: colors.partial, color: colors.emeraldText },
-  doute: { label: 'Doute', bg: colors.sosTint, color: colors.sosText },
-  poids: { label: 'Poids', bg: colors.soft, color: colors.body },
-  avancee: { label: 'Avancée', bg: '#D7EFE3', color: colors.emeraldText },
-};
 
 export default function NotesScreen() {
   const router = useRouter();
@@ -137,7 +130,7 @@ export default function NotesScreen() {
             </Pressable>
           )}
 
-          <OutlineButton label="Ajouter mon poids" onPress={() => router.push({ pathname: '/nouvelle-note', params: { kind: 'poids' } })} />
+          <OutlineButton label="Ajouter mon poids" onPress={() => router.push('/ajouter-poids')} />
           {weight.target !== null && (
             <Pressable accessibilityRole="button" onPress={openGoal} style={{ alignSelf: 'center', minHeight: 36, justifyContent: 'center' }}>
               <Text style={styles.link}>Modifier l’objectif</Text>
@@ -196,39 +189,6 @@ export default function NotesScreen() {
   );
 }
 
-function NoteCard({ note }: { note: Note }) {
-  const tag = TAGS[note.kind];
-  const mood = typeof note.mood === 'number' ? Math.max(1, Math.min(5, Math.round(note.mood))) : null;
-  const text = note.text.trim() || (typeof note.value === 'number' ? formatKg(note.value) : '');
-  const showWeightLine = typeof note.value === 'number' && note.text.trim() !== '';
-
-  return (
-    <View style={styles.note}>
-      <View style={styles.noteHead}>
-        <Text style={styles.label}>{formatDayLong(new Date(note.at))}</Text>
-        <View style={[styles.tag, { backgroundColor: tag.bg }]}>
-          <Text style={[styles.tagText, { color: tag.color }]}>{tag.label}</Text>
-        </View>
-      </View>
-      <Text style={styles.noteText}>{text}</Text>
-      {showWeightLine && <Text style={styles.delta}>{formatKg(note.value as number)}</Text>}
-      {(mood !== null || typeof note.fastHours === 'number') && (
-        <View style={styles.meta}>
-          {mood !== null && (
-            <Text accessibilityLabel={`Humeur ${mood} sur 5`} style={styles.dots}>
-              {'●'.repeat(mood)}
-              {'○'.repeat(5 - mood)}
-            </Text>
-          )}
-          {typeof note.fastHours === 'number' && (
-            <Text style={styles.label}>au bout de {formatHoursMinutes(note.fastHours)} de jeûne</Text>
-          )}
-        </View>
-      )}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
   title: { fontFamily: titleFont, fontSize: 24, fontWeight: '600', color: colors.text },
@@ -250,12 +210,5 @@ const styles = StyleSheet.create({
   chip: { minHeight: 40, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
   chipOn: { backgroundColor: colors.emerald, borderColor: colors.emerald },
   chipText: { fontSize: 13, fontWeight: '800', color: colors.body },
-  note: { backgroundColor: colors.card, borderRadius: 20, paddingVertical: 12, paddingHorizontal: 16, gap: 4 },
-  noteHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  tag: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
-  tagText: { fontSize: 11, fontWeight: '800' },
-  noteText: { fontSize: 14, lineHeight: 21, color: colors.body },
-  meta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dots: { color: colors.emerald, letterSpacing: 2, fontSize: 12 },
   input: { borderWidth: 1, borderColor: colors.line, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: '#F7FAF6', color: colors.text, fontSize: 16 },
 });

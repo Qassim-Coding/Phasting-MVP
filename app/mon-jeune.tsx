@@ -1,19 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { NoteCard } from '../components/NoteCard';
 import { Card, PrimaryButton, Screen, SectionTitle } from '../components/ui';
 import { useFast } from '../data/FastContext';
 import { MEDICAL_NOTE, PHASES, TIPS } from '../data/phases';
-import { formatHoursMinutes } from '../logic/dates';
+import { useNotesData } from '../data/useNotesData';
+import { formatHoursMinutes, relativeDayLabel } from '../logic/dates';
+import { phaseHistory } from '../logic/phaseStats';
 import { colors, titleFont } from '../theme';
 import { formatMinutes, getPhase } from '../widgets/fastState';
 
 // Fiche de phase : ce que fait le corps, la science, les bienfaits, comment tenir.
 export default function MonJeuneScreen() {
   const router = useRouter();
-  const { now, fast, protocol } = useFast();
+  const { now, fast, protocol, history } = useFast();
+  const { notes } = useNotesData();
 
   const running = fast.startedAt !== null;
   const elapsed = running ? Math.max(0, now - (fast.startedAt as number)) : 0;
@@ -23,11 +27,17 @@ export default function MonJeuneScreen() {
   const phase = PHASES[selected];
   const startHour = selected === 0 ? 0 : (PHASES[selected - 1].endHour as number);
   const isCurrent = running && selected === current.index;
+  const mine = useMemo(
+    () => phaseHistory(history, notes, startHour, phase.endHour),
+    [history, notes, startHour, phase.endHour],
+  );
+  const elapsedHours = elapsed / 3600000;
+  const reachedNow = running && elapsedHours >= startHour;
   const range =
     phase.endHour === null ? `Au-delà de ${startHour} h de jeûne` : `De ${startHour} h à ${phase.endHour} h de jeûne`;
 
   return (
-    <Screen>
+    <Screen bottom>
       <ScrollView contentContainerStyle={{ padding: 20, gap: 14 }}>
         <View style={styles.head}>
           <View style={styles.headLeft}>
@@ -82,6 +92,56 @@ export default function MonJeuneScreen() {
             );
           })}
         </View>
+
+        <Card style={{ borderRadius: 26, gap: 10 }}>
+          <SectionTitle>Ton parcours dans cette phase</SectionTitle>
+          {mine.reached > 0 || reachedNow ? (
+            <>
+              <View style={styles.tiles}>
+                <View style={styles.tile}>
+                  <Text style={styles.tileValue}>{mine.reached + (reachedNow ? 1 : 0)}</Text>
+                  <Text style={styles.tileLabel}>fois atteinte</Text>
+                </View>
+                <View style={styles.tile}>
+                  <Text style={styles.tileValue}>{mine.lastAt !== null ? relativeDayLabel(mine.lastAt, now) : 'en cours'}</Text>
+                  <Text style={styles.tileLabel}>dernière fois</Text>
+                </View>
+              </View>
+              <Text style={styles.muted}>
+                {mine.reached} jeûne{mine.reached > 1 ? 's' : ''} terminé{mine.reached > 1 ? 's' : ''} sur {mine.total}
+                {reachedNow ? ', et tu y es en ce moment.' : '.'}
+              </Text>
+            </>
+          ) : running ? (
+            <Text style={styles.body}>
+              Tu y seras dans <Text style={styles.strong}>{formatHoursMinutes(Math.max(0, startHour - elapsedHours))}</Text>.
+              {mine.recordHeld !== null ? ` Ton record est de ${formatHoursMinutes(mine.recordHeld)}.` : ''}
+            </Text>
+          ) : (
+            <Text style={styles.body}>
+              Tu n’as pas encore atteint cette phase.
+              {mine.recordHeld !== null
+                ? ` Ton plus long jeûne : ${formatHoursMinutes(mine.recordHeld)}, il te manque ${formatHoursMinutes(Math.max(0, startHour - mine.recordHeld))}.`
+                : ' Termine un premier jeûne pour voir ton parcours.'}
+            </Text>
+          )}
+          {mine.avgMood !== null && (
+            <Text style={styles.muted}>
+              Ton humeur moyenne à ce stade :{' '}
+              <Text style={styles.strong}>{mine.avgMood.toFixed(1).replace('.', ',')} sur 5</Text> ({mine.notes.length}{' '}
+              note{mine.notes.length > 1 ? 's' : ''}).
+            </Text>
+          )}
+        </Card>
+
+        {mine.notes.length > 0 && (
+          <View style={{ gap: 8 }}>
+            <Text style={styles.sectionLabel}>Tes notes à ce stade</Text>
+            {mine.notes.slice(0, 2).map((n) => (
+              <NoteCard key={n.id} note={n} />
+            ))}
+          </View>
+        )}
 
         <Card style={{ borderRadius: 26 }}>
           <SectionTitle>Ce que fait ton corps</SectionTitle>
@@ -173,6 +233,12 @@ const styles = StyleSheet.create({
   pillOn: { backgroundColor: colors.emerald, borderColor: colors.emerald },
   pillText: { fontSize: 13, fontWeight: '800', color: colors.body },
   body: { fontSize: 14, lineHeight: 21, color: colors.body },
+  strong: { fontWeight: '800', color: colors.text },
+  sectionLabel: { fontSize: 13, fontWeight: '800', color: colors.muted, paddingHorizontal: 4 },
+  tiles: { flexDirection: 'row', gap: 10 },
+  tile: { flex: 1, backgroundColor: '#F2F8F3', borderRadius: 18, padding: 14, gap: 2 },
+  tileValue: { fontFamily: titleFont, fontSize: 24, fontWeight: '600', color: colors.text },
+  tileLabel: { fontSize: 12, fontWeight: '600', color: colors.muted },
   muted: { fontSize: 13, lineHeight: 19, color: colors.muted },
   study: { gap: 4, backgroundColor: '#EAF3EC', borderRadius: 18, padding: 14 },
   studyTitle: { fontSize: 13, fontWeight: '800', color: colors.text },

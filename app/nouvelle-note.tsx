@@ -7,12 +7,10 @@ import { PrimaryButton, Screen } from '../components/ui';
 import { useFast } from '../data/FastContext';
 import { type NoteKind, addNote } from '../data/storage';
 import { formatHoursMinutes } from '../logic/dates';
-import { parseKg } from '../logic/weight';
 import { colors, titleFont } from '../theme';
 import { getPhase } from '../widgets/fastState';
 
 const KINDS: { id: NoteKind; label: string }[] = [
-  { id: 'poids', label: 'Poids' },
   { id: 'avancee', label: 'Avancée' },
   { id: 'doute', label: 'Doute' },
   { id: 'victoire', label: 'Victoire' },
@@ -20,7 +18,7 @@ const KINDS: { id: NoteKind; label: string }[] = [
 
 const MOOD_LABELS = ['Très bas', 'Bas', 'Moyen', 'Plutôt bien', 'Au top'];
 
-// Saisie d'une note : type, humeur de 1 à 5, texte libre, poids facultatif.
+// Saisie d'une note : type, humeur de 1 à 5, texte libre. (Le poids a son propre écran : ajouter-poids.)
 // Si un jeûne est en cours, la note garde la durée de jeûne au moment où elle est écrite.
 export default function NouvelleNoteScreen() {
   const router = useRouter();
@@ -31,15 +29,12 @@ export default function NouvelleNoteScreen() {
   const [kind, setKind] = useState<NoteKind>(initialKind);
   const [mood, setMood] = useState(3);
   const [text, setText] = useState('');
-  const [weightText, setWeightText] = useState('');
 
   const running = fast.startedAt !== null;
   const elapsedMs = running ? Math.max(0, now - (fast.startedAt as number)) : 0;
   const phase = getPhase(elapsedMs);
 
-  const weight = weightText.trim() === '' ? null : parseKg(weightText);
-  const weightInvalid = weightText.trim() !== '' && weight === null;
-  const canSave = (text.trim() !== '' || weight !== null) && !weightInvalid;
+  const canSave = text.trim() !== '';
 
   const save = async () => {
     if (!canSave) return;
@@ -49,14 +44,13 @@ export default function NouvelleNoteScreen() {
       kind,
       text: text.trim(),
       mood,
-      ...(weight !== null ? { value: weight } : {}),
       ...(running ? { fastHours: elapsedMs / 3600000 } : {}),
     });
     router.back();
   };
 
   return (
-    <Screen>
+    <Screen bottom>
       <ScrollView contentContainerStyle={{ padding: 20, gap: 14 }} keyboardShouldPersistTaps="handled">
         <View style={styles.head}>
           <Pressable accessibilityLabel="Fermer" onPress={() => router.back()} style={styles.close}>
@@ -127,24 +121,6 @@ export default function NouvelleNoteScreen() {
           />
         </View>
 
-        <View style={[styles.card, styles.weightRow]}>
-          <View style={{ gap: 2, flex: 1 }}>
-            <Text style={styles.cardTitleSmall}>Poids du jour</Text>
-            <Text style={weightInvalid ? styles.error : styles.muted}>
-              {weightInvalid ? 'Entre un poids entre 20 et 400 kg' : 'Facultatif'}
-            </Text>
-          </View>
-          <TextInput
-            value={weightText}
-            onChangeText={setWeightText}
-            keyboardType="decimal-pad"
-            placeholder="78,4"
-            placeholderTextColor={colors.muted}
-            style={[styles.input, styles.weightInput]}
-          />
-          <Text style={styles.unit}>kg</Text>
-        </View>
-
         {running && (
           <View style={styles.context}>
             <Ionicons name="time-outline" size={22} color={colors.emerald} />
@@ -177,7 +153,6 @@ const styles = StyleSheet.create({
   kindText: { fontSize: 13, fontWeight: '800', color: colors.body },
   card: { backgroundColor: colors.card, borderRadius: 24, padding: 16, gap: 10 },
   cardTitle: { fontFamily: titleFont, fontSize: 18, fontWeight: '600', color: colors.text },
-  cardTitleSmall: { fontSize: 14, fontWeight: '800', color: colors.text },
   moodHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   moodValue: { fontSize: 13, fontWeight: '800', color: colors.emeraldText },
   moods: { flexDirection: 'row', gap: 8 },
@@ -187,11 +162,6 @@ const styles = StyleSheet.create({
   moodScale: { flexDirection: 'row', justifyContent: 'space-between' },
   scaleText: { fontSize: 11, fontWeight: '600', color: colors.muted },
   input: { borderWidth: 1, borderColor: colors.line, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: '#F7FAF6', color: colors.text, fontSize: 16 },
-  weightRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  weightInput: { width: 90, minHeight: 44, textAlign: 'right', fontWeight: '800', paddingVertical: 8 },
-  unit: { fontSize: 14, fontWeight: '800', color: colors.muted },
-  muted: { fontSize: 12, color: colors.muted },
-  error: { fontSize: 12, fontWeight: '800', color: colors.sosText },
   context: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 4 },
   contextText: { flex: 1, fontSize: 13, lineHeight: 19, color: colors.body },
 });

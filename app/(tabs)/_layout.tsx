@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '../../theme';
 
@@ -16,7 +17,11 @@ function tab(title: string, icon: IconName) {
 }
 
 // Barre du bas : Jeûne · Calendrier · Stats · Notes
+// Sur Android, l'app s'affiche derrière les boutons système (retour, accueil, applis récentes).
+// La barre doit donc réserver cet espace : sa hauteur = 56 + hauteur des boutons système.
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -24,7 +29,13 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.emeraldText,
         tabBarInactiveTintColor: colors.muted,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
-        tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.line, height: 64, paddingBottom: 8 },
+        tabBarStyle: {
+          backgroundColor: colors.card,
+          borderTopColor: colors.line,
+          height: 56 + insets.bottom,
+          paddingBottom: insets.bottom + 6,
+          paddingTop: 6,
+        },
       }}
     >
       <Tabs.Screen name="index" options={tab('Jeûne', 'hourglass-outline')} />

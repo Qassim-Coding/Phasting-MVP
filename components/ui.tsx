@@ -6,15 +6,19 @@ import { colors, titleFont } from '../theme';
 
 // Briques d'interface réutilisées partout.
 
+// `bottom` : à activer sur les écrans hors barre d'onglets (protocole, craquer, mon-jeune, nouvelle-note).
+// Il garde le contenu au-dessus des boutons système d'Android. Dans les onglets, c'est la barre du bas qui s'en charge.
 export function Screen({
   children,
   style,
+  bottom,
 }: {
   children?: React.ReactNode;
   style?: ViewStyle;
+  bottom?: boolean;
 }) {
   return (
-    <SafeAreaView edges={['top']} style={[styles.screen, style]}>
+    <SafeAreaView edges={bottom ? ['top', 'bottom'] : ['top']} style={[styles.screen, style]}>
       {children}
     </SafeAreaView>
   );

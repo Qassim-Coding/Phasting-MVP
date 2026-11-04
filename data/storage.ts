@@ -11,6 +11,7 @@ const KEYS = {
   why: 'phasting:why',
   protocol: 'phasting:protocol',
   goal: 'phasting:weightGoal',
+  cravings: 'phasting:cravings',
 } as const;
 
 export type FastRecord = {
@@ -36,6 +37,17 @@ export type Note = {
 export type WeightGoal = {
   startKg: number | null; // null = on prend la première pesée
   targetKg: number;
+};
+
+// Une envie de craquer : tenue ou non, à quelle heure de jeûne, et ce qui l'a déclenchée (facultatif).
+export type TriggerId = 'ennui' | 'stress' | 'habitude' | 'faim' | 'fatigue' | 'social';
+
+export type Craving = {
+  id: string;
+  at: number;
+  fastHours: number | null; // durée de jeûne à ce moment-là, null si aucun jeûne en cours
+  outcome: 'tenu' | 'craque';
+  trigger?: TriggerId;
 };
 
 async function read<T>(key: string, fallback: T): Promise<T> {
@@ -79,3 +91,13 @@ export const saveProtocolId = (id: string) => write(KEYS.protocol, id);
 
 export const loadGoal = () => read<WeightGoal | null>(KEYS.goal, null);
 export const saveGoal = (goal: WeightGoal) => write(KEYS.goal, goal);
+
+export const loadCravings = () => read<Craving[]>(KEYS.cravings, []);
+
+// Les envies les plus récentes d'abord.
+export async function addCraving(craving: Craving): Promise<Craving[]> {
+  const cravings = await loadCravings();
+  const next = [craving, ...cravings].sort((a, b) => b.at - a.at);
+  await write(KEYS.cravings, next);
+  return next;
+}

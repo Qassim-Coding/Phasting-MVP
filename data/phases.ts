@@ -57,7 +57,7 @@ export const PHASES: Phase[] = [
     name: 'Jeûne prolongé',
     short: 'Prolongé',
     endHour: null,
-    body: 'Au-delà de 16 h, les effets deviennent plus marqués. Écoute ton corps ; pour les jeûnes longs, demande un avis médical.',
+    body: 'Au-delà de 16 h, les effets deviennent plus marqués. Écoute ton corps.',
     benefits: ['À sourcer avec des études.'],
     studies: [],
   },
