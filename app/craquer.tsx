@@ -28,6 +28,8 @@ const HELP: { icon: React.ComponentProps<typeof Ionicons>['name']; title: string
 export default function CraquerScreen() {
   const router = useRouter();
   const { now, fast, streak, history, stop } = useFast();
+  // Ouvert depuis le widget, il n'y a pas d'écran précédent : on retourne à l'accueil.
+  const leave = () => (router.canGoBack() ? router.back() : router.replace('/'));
   const [secondsLeft, setSecondsLeft] = useState(WAIT_SECONDS);
   const [running, setRunning] = useState(false);
   const [why, setWhy] = useState('');
@@ -109,7 +111,7 @@ export default function CraquerScreen() {
   return (
     <Screen bottom>
       <ScrollView contentContainerStyle={{ padding: 20, gap: 14 }}>
-        <Pressable accessibilityLabel="Fermer" onPress={() => router.back()} style={styles.close}>
+        <Pressable accessibilityLabel="Fermer" onPress={leave} style={styles.close}>
           <Ionicons name="close" size={24} color={colors.text} />
         </Pressable>
 
@@ -282,7 +284,7 @@ export default function CraquerScreen() {
           label="Je tiens"
           onPress={async () => {
             await logCraving('tenu');
-            router.back();
+            leave();
           }}
           style={{ marginTop: 4 }}
         />

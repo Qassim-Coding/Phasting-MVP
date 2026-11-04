@@ -11,7 +11,7 @@ import {
   getPhase,
 } from './fastState';
 
-const C = {
+export const C = {
   bg: '#0C2E26',
   track: '#1F4A3E',
   mint: '#7FD6AE',
@@ -19,7 +19,7 @@ const C = {
   muted: '#A8C9BB',
 } as const;
 
-function ringSvg(fraction: number, size: number, stroke: number): string {
+export function ringSvg(fraction: number, size: number, stroke: number): string {
   const c = size / 2;
   const r = c - stroke / 2;
   const f = Math.max(0, Math.min(1, fraction));
