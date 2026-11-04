@@ -10,6 +10,7 @@ const KEYS = {
   notes: 'phasting:notes',
   why: 'phasting:why',
   protocol: 'phasting:protocol',
+  goal: 'phasting:weightGoal',
 } as const;
 
 export type FastRecord = {
@@ -27,7 +28,14 @@ export type Note = {
   at: number;
   kind: NoteKind;
   text: string;
-  value?: number; // ex. poids en kg
+  value?: number; // poids en kg, si la note en contient un
+  mood?: number; // humeur de 1 à 5
+  fastHours?: number; // durée de jeûne au moment de la note, si un jeûne était en cours
+};
+
+export type WeightGoal = {
+  startKg: number | null; // null = on prend la première pesée
+  targetKg: number;
 };
 
 async function read<T>(key: string, fallback: T): Promise<T> {
@@ -55,9 +63,10 @@ export async function addRecord(record: FastRecord): Promise<FastRecord[]> {
 
 export const loadNotes = () => read<Note[]>(KEYS.notes, []);
 
+// Les notes les plus récentes d'abord.
 export async function addNote(note: Note): Promise<Note[]> {
   const notes = await loadNotes();
-  const next = [note, ...notes];
+  const next = [note, ...notes].sort((a, b) => b.at - a.at);
   await write(KEYS.notes, next);
   return next;
 }
@@ -67,3 +76,6 @@ export const saveWhy = (text: string) => write(KEYS.why, text);
 
 export const loadProtocolId = () => read<string>(KEYS.protocol, DEFAULT_PROTOCOL_ID);
 export const saveProtocolId = (id: string) => write(KEYS.protocol, id);
+
+export const loadGoal = () => read<WeightGoal | null>(KEYS.goal, null);
+export const saveGoal = (goal: WeightGoal) => write(KEYS.goal, goal);
