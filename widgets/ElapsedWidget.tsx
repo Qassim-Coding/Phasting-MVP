@@ -1,7 +1,15 @@
 import React from 'react';
 import { FlexWidget, OverlapWidget, SvgWidget, TextWidget } from 'react-native-android-widget';
 
-import { type FastState, formatClock, formatHM, formatMinutes, getPhase } from './fastState';
+import {
+  DEFAULT_PROTOCOL_LABEL,
+  type FastState,
+  formatClock,
+  formatClockWithDay,
+  formatHM,
+  formatMinutes,
+  getPhase,
+} from './fastState';
 
 const C = {
   bg: '#0C2E26',
@@ -37,6 +45,7 @@ export function ElapsedWidget({ fast, now }: Props) {
   const elapsed = running ? Math.max(0, now - startedAt) : 0;
   const targetMs = fast.targetHours * 3600000;
   const phase = getPhase(elapsed);
+  const label = fast.protocolLabel ?? DEFAULT_PROTOCOL_LABEL;
 
   const title = running ? phase.name : 'Pas de jeûne en cours';
   const line2 = !running
@@ -45,7 +54,7 @@ export function ElapsedWidget({ fast, now }: Props) {
       ? `${phase.nextName} dans ${formatMinutes(phase.minutesToNext)}`
       : 'Objectif dépassé, bravo';
   const line3 = running
-    ? `Début ${formatClock(startedAt)} → fin ${formatClock(startedAt + targetMs)}`
+    ? `Début ${formatClockWithDay(startedAt, now)} → fin ${formatClockWithDay(startedAt + targetMs, now)}`
     : `Objectif ${fast.targetHours} h`;
 
   return (
@@ -89,7 +98,7 @@ export function ElapsedWidget({ fast, now }: Props) {
       <FlexWidget style={{ width: 14, height: 1 }} />
 
       <FlexWidget style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
-        <TextWidget text="Phasting · 16:8" style={{ fontSize: 12, color: C.muted }} />
+        <TextWidget text={`Phasting · ${label}`} style={{ fontSize: 12, color: C.muted }} />
         <TextWidget text={title} style={{ fontSize: 17, fontWeight: 'bold', color: C.mint }} />
         <TextWidget text={line2} style={{ fontSize: 13, color: C.text }} />
         <TextWidget text={line3} style={{ fontSize: 12, color: C.muted }} />

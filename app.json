@@ -46,6 +46,13 @@
           ]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "982229a7-1b49-4cae-b1b2-1cceb69a8897"
+      }
+    },
+    "owner": "qassim-coding"
   }
 }
