@@ -19,6 +19,7 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/withPhastingTheme",
       [
         "expo-splash-screen",
         {

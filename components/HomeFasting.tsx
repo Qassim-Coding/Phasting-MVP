@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useFast } from '../data/FastContext';
@@ -8,14 +8,13 @@ import { formatHoursMinutes } from '../logic/dates';
 import { colors, titleFont } from '../theme';
 import { formatClockWithDay, formatHM, formatMinutes, getPhase } from '../widgets/fastState';
 import { ProgressRing } from './ProgressRing';
-import { StartTimeModal } from './StartTimeModal';
+import { pickStartTime } from './pickStartTime';
 import { OutlineButton } from './ui';
 
 // Accueil, état 2 : un jeûne est en cours.
 export function HomeFasting() {
   const router = useRouter();
   const { now, fast, stop, setStartedAt } = useFast();
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   const startedAt = fast.startedAt ?? now;
   const elapsed = Math.max(0, now - startedAt);
@@ -61,7 +60,10 @@ export function HomeFasting() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Modifier l’heure de début"
-            onPress={() => setPickerOpen(true)}
+            onPress={async () => {
+              const ts = await pickStartTime(startedAt);
+              if (ts !== null) await setStartedAt(ts);
+            }}
             style={styles.pencil}
           >
             <Ionicons name="pencil" size={18} color={colors.emeraldText} />
@@ -99,18 +101,6 @@ export function HomeFasting() {
         <Text style={styles.sosText}>J’ai envie de craquer</Text>
       </Pressable>
       <OutlineButton label="Terminer le jeûne" onPress={confirmStop} />
-
-      <StartTimeModal
-        visible={pickerOpen}
-        initial={startedAt}
-        now={now}
-        title="Modifier l’heure de début"
-        onCancel={() => setPickerOpen(false)}
-        onConfirm={(ts) => {
-          setPickerOpen(false);
-          void setStartedAt(ts);
-        }}
-      />
     </>
   );
 }

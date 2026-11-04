@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useFast } from '../data/FastContext';
@@ -6,13 +6,12 @@ import { formatHoursMinutes, relativeDayLabel } from '../logic/dates';
 import { heldHoursOf } from '../logic/streak';
 import { colors, titleFont } from '../theme';
 import { ProgressRing } from './ProgressRing';
-import { StartTimeModal } from './StartTimeModal';
+import { pickStartTime } from './pickStartTime';
 import { OutlineButton, PrimaryButton } from './ui';
 
 // Accueil, état 1 : aucun jeûne en cours, fenêtre de repas terminée.
 export function HomeReady() {
   const { now, protocol, streak, lastRecord, start } = useFast();
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   const last = lastRecord
     ? `${formatHoursMinutes(heldHoursOf(lastRecord))} · ${relativeDayLabel(lastRecord.endedAt, now)}`
@@ -49,17 +48,11 @@ export function HomeReady() {
       </View>
 
       <PrimaryButton label="Démarrer le jeûne" onPress={() => start()} style={{ marginTop: 8 }} />
-      <OutlineButton label="J’ai commencé plus tôt" onPress={() => setPickerOpen(true)} />
-
-      <StartTimeModal
-        visible={pickerOpen}
-        initial={now - 60 * 60000}
-        now={now}
-        title="À quelle heure as-tu commencé ?"
-        onCancel={() => setPickerOpen(false)}
-        onConfirm={(ts) => {
-          setPickerOpen(false);
-          start(ts);
+      <OutlineButton
+        label="J’ai commencé plus tôt"
+        onPress={async () => {
+          const ts = await pickStartTime(now - 60 * 60000);
+          if (ts !== null) await start(ts);
         }}
       />
     </>
