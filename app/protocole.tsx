@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { Text } from '../components/Text';
 import { PrimaryButton, Screen } from '../components/ui';
 import { useFast } from '../data/FastContext';
 import { PROTOCOLS } from '../data/protocols';

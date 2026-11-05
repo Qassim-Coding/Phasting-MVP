@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { Text } from '../../components/Text';
 import { Sparkline } from '../../components/Sparkline';
 import { Card, Screen } from '../../components/ui';
 import { useFast } from '../../data/FastContext';

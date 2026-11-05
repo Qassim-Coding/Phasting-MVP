@@ -1,5 +1,3 @@
-import { Platform } from 'react-native';
-
 // Palette zen de Phasting (la même que dans les maquettes).
 export const colors = {
   bg: '#F2F6F1',
@@ -23,5 +21,23 @@ export const colors = {
   partial: '#CFE9DC',
 } as const;
 
-// Police des titres. Fraunces viendra plus tard (expo-font) ; en attendant, une serif système.
-export const titleFont = Platform.select({ ios: 'Georgia', default: 'serif' }) as string;
+// Polices : Fraunces pour les titres, Manrope pour le reste (chargées dans app/_layout.tsx avec expo-font).
+export const titleFont = 'Fraunces_600SemiBold';
+
+export const bodyFonts = {
+  regular: 'Manrope_400Regular',
+  medium: 'Manrope_500Medium',
+  semibold: 'Manrope_600SemiBold',
+  bold: 'Manrope_700Bold',
+  extrabold: 'Manrope_800ExtraBold',
+} as const;
+
+// Choisit le fichier Manrope qui correspond à un fontWeight.
+export function bodyFontFor(weight?: string | number): string {
+  const w = weight === 'bold' ? 700 : weight === 'normal' || weight === undefined ? 400 : Number(weight);
+  if (w >= 800) return bodyFonts.extrabold;
+  if (w >= 700) return bodyFonts.bold;
+  if (w >= 600) return bodyFonts.semibold;
+  if (w >= 500) return bodyFonts.medium;
+  return bodyFonts.regular;
+}

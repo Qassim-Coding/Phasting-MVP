@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
+import { Text } from '../../components/Text';
 import { EditSheet } from '../../components/EditSheet';
 import { NoteCard } from '../../components/NoteCard';
 import { Sparkline } from '../../components/Sparkline';
@@ -10,7 +11,7 @@ import { Card, OutlineButton, Screen } from '../../components/ui';
 import { type NoteKind, saveGoal, saveWhy } from '../../data/storage';
 import { useNotesData } from '../../data/useNotesData';
 import { formatKg, parseKg, weightInfo } from '../../logic/weight';
-import { colors, titleFont } from '../../theme';
+import { bodyFonts, colors, titleFont } from '../../theme';
 
 type Filter = 'tout' | 'poids' | NoteKind;
 
@@ -210,5 +211,5 @@ const styles = StyleSheet.create({
   chip: { minHeight: 40, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
   chipOn: { backgroundColor: colors.emerald, borderColor: colors.emerald },
   chipText: { fontSize: 13, fontWeight: '800', color: colors.body },
-  input: { borderWidth: 1, borderColor: colors.line, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: '#F7FAF6', color: colors.text, fontSize: 16 },
+  input: { borderWidth: 1, borderColor: colors.line, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: '#F7FAF6', color: colors.text, fontSize: 16, fontFamily: bodyFonts.semibold },
 });

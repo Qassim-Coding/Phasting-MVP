@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { Text } from './Text';
 import { useFast } from '../data/FastContext';
 import { formatHoursMinutes, relativeDayLabel } from '../logic/dates';
 import { heldHoursOf } from '../logic/streak';

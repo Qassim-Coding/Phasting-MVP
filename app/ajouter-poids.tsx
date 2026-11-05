@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
+import { Text } from '../components/Text';
 import { WeightRuler } from '../components/WeightRuler';
 import { pickStartTime } from '../components/pickStartTime';
 import { PrimaryButton, Screen } from '../components/ui';
@@ -10,7 +11,7 @@ import { useFast } from '../data/FastContext';
 import { addNote, loadGoal, loadNotes } from '../data/storage';
 import { formatDayLong } from '../logic/dates';
 import { formatKg, weightInfo } from '../logic/weight';
-import { colors, titleFont } from '../theme';
+import { bodyFonts, colors, titleFont } from '../theme';
 import { formatClock } from '../widgets/fastState';
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
@@ -164,5 +165,6 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     color: colors.text,
     fontSize: 16,
+    fontFamily: bodyFonts.semibold,
   },
 });

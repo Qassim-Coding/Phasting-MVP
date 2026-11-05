@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from './Text';
 import { useFast } from '../data/FastContext';
 import { colors, titleFont } from '../theme';
 
@@ -19,6 +20,14 @@ export function TopBar() {
           <Ionicons name="leaf-outline" size={16} color={colors.emeraldText} />
           <Text style={styles.streakText}>{streak} j</Text>
         </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Réglages du widget"
+          onPress={() => router.push('/reglages-widget')}
+          style={styles.gear}
+        >
+          <Ionicons name="options-outline" size={22} color={colors.emeraldText} />
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Changer de protocole, actuellement ${protocol.label}`}
@@ -47,6 +56,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.soft,
   },
   streakText: { fontSize: 13, fontWeight: '800', color: colors.emeraldText },
+  gear: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.soft },
   protocol: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { Text } from './Text';
 import type { Note, NoteKind } from '../data/storage';
 import { formatDayLong, formatHoursMinutes } from '../logic/dates';
 import { formatKg } from '../logic/weight';

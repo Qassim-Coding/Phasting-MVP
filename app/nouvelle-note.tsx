@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
+import { Text } from '../components/Text';
 import { PrimaryButton, Screen } from '../components/ui';
 import { useFast } from '../data/FastContext';
 import { type NoteKind, addNote } from '../data/storage';
 import { formatHoursMinutes } from '../logic/dates';
-import { colors, titleFont } from '../theme';
+import { bodyFonts, colors, titleFont } from '../theme';
 import { getPhase } from '../widgets/fastState';
 
 const KINDS: { id: NoteKind; label: string }[] = [
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
   moodText: { fontSize: 17, fontWeight: '800', color: colors.body },
   moodScale: { flexDirection: 'row', justifyContent: 'space-between' },
   scaleText: { fontSize: 11, fontWeight: '600', color: colors.muted },
-  input: { borderWidth: 1, borderColor: colors.line, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: '#F7FAF6', color: colors.text, fontSize: 16 },
+  input: { borderWidth: 1, borderColor: colors.line, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: '#F7FAF6', color: colors.text, fontSize: 16, fontFamily: bodyFonts.semibold },
   context: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 4 },
   contextText: { flex: 1, fontSize: 13, lineHeight: 19, color: colors.body },
 });

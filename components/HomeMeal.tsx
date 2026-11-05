@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { Text } from './Text';
 import { useFast } from '../data/FastContext';
 import type { FastRecord } from '../data/storage';
 import { formatHoursMinutes } from '../logic/dates';

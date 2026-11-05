@@ -1,7 +1,8 @@
 import React from 'react';
-import { KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Text } from './Text';
 import { colors, titleFont } from '../theme';
 import { OutlineButton, PrimaryButton } from './ui';
 
