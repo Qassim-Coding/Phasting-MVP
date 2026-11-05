@@ -22,6 +22,7 @@ export const colors = {
 } as const;
 
 // Polices : Fraunces pour les titres, Manrope pour le reste (chargées dans app/_layout.tsx avec expo-font).
+// Aucune police à empattements du système (Times) n'est utilisée nulle part.
 export const titleFont = 'Fraunces_600SemiBold';
 
 export const bodyFonts = {

@@ -64,7 +64,9 @@ export function FastProvider({ children }: { children: React.ReactNode }) {
   const persist = useCallback(async (next: FastState) => {
     setFast(next);
     await saveFast(next);
-    await refreshWidget(next);
+    // Le widget se met à jour en arrière-plan : s'il est lent, absent ou indisponible (Expo Go),
+    // ça ne doit jamais bloquer ni faire échouer l'écran.
+    void refreshWidget(next).catch(() => {});
   }, []);
 
   const start = useCallback(

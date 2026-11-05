@@ -100,9 +100,17 @@ export default function CraquerScreen() {
         {
           text: 'Terminer',
           onPress: async () => {
-            await logCraving('craque');
-            await stop();
-            router.replace('/');
+            try {
+              await logCraving('craque');
+            } catch {
+              // la trace de l'envie n'est pas essentielle : on termine le jeûne quand même
+            }
+            try {
+              await stop();
+              router.replace('/');
+            } catch {
+              Alert.alert('Oups', 'Le jeûne n’a pas pu être terminé. Réessaie dans un instant.');
+            }
           },
         },
       ],
@@ -313,7 +321,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   chipText: { fontSize: 13, fontWeight: '800', color: colors.text },
-  cardTitle: { fontFamily: titleFont, fontSize: 19, fontWeight: '600', color: colors.text },
+  cardTitle: { fontFamily: titleFont, fontStyle: 'italic', fontSize: 19, fontWeight: '600', color: colors.text },
   muted: { fontSize: 13, lineHeight: 19, color: colors.muted },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   timerText: { fontFamily: titleFont, fontSize: 22, fontWeight: '500', color: colors.text },
@@ -328,7 +336,7 @@ const styles = StyleSheet.create({
   },
   helpTitle: { fontSize: 14, fontWeight: '800', color: colors.text },
   kickerDark: { fontSize: 12, fontWeight: '800', color: colors.mint },
-  why: { fontFamily: titleFont, fontStyle: 'italic', fontSize: 19, lineHeight: 26, color: colors.onDeep },
+  why: { fontFamily: titleFont, fontSize: 19, lineHeight: 26, color: colors.onDeep },
   streakCard: {
     flexDirection: 'row',
     alignItems: 'center',

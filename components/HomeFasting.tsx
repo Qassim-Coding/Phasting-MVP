@@ -31,7 +31,16 @@ export function HomeFasting() {
         : `Tu as tenu ${formatHoursMinutes(held)} sur ${fast.targetHours} h.`;
     Alert.alert('Terminer le jeûne ?', message, [
       { text: 'Continuer', style: 'cancel' },
-      { text: 'Terminer', onPress: () => void stop() },
+      {
+        text: 'Terminer',
+        onPress: async () => {
+          try {
+            await stop();
+          } catch {
+            Alert.alert('Oups', 'Le jeûne n’a pas pu être terminé. Réessaie dans un instant.');
+          }
+        },
+      },
     ]);
   };
 
