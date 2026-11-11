@@ -109,12 +109,12 @@ export function DetailWidget({ fast, now, streak, settings = DEFAULT_WIDGET_SETT
 
       {running ? (
         <FlexWidget style={{ width: 'match_parent', flexDirection: 'column' }}>
-          <TextWidget text={`Ton corps · ${info.body}`} maxLines={3} style={{ fontSize: 12, color: P.body }} />
+          <TextWidget text={`Ton corps · ${info.bodyShort}`} maxLines={3} style={{ fontSize: 12, color: P.body }} />
           <FlexWidget style={{ height: 6, width: 1 }} />
-          <TextWidget text={`Tu gagnes · ${info.benefits[0]}`} maxLines={2} style={{ fontSize: 12, color: P.body }} />
+          <TextWidget text={`${info.gainLabelShort} · ${info.gainShort}`} maxLines={2} style={{ fontSize: 12, color: P.body }} />
           {settings.showTip && <FlexWidget style={{ height: 6, width: 1 }} />}
           {settings.showTip && (
-            <TextWidget text={`Pour tenir · ${tip.title}. ${tip.text}`} maxLines={3} style={{ fontSize: 12, color: P.body }} />
+            <TextWidget text={`Pour tenir · ${tip.short ?? `${tip.title}. ${tip.text}`}`} maxLines={3} style={{ fontSize: 12, color: P.body }} />
           )}
         </FlexWidget>
       ) : (

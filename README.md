@@ -33,13 +33,13 @@ Le widget est la raison d'être de l'app. Sans ouvrir Phasting, tu vois :
 Il existe en plusieurs tailles (4×1, 2×2, 4×2) et en version détaillée (4×4) : un résumé court mais encourageant. Android rafraîchit un widget au mieux toutes les ~30 minutes ; le widget affiche donc des informations qui ne vieillissent pas vite (phase, début, fin), et l'écran de l'app reste la référence en temps réel.
 
 ### 2. Un jeûne expliqué, phase par phase
-Pour chaque phase (provisoirement : Digestion, Insuline en baisse, Bascule vers les graisses, Cétose légère, Jeûne prolongé) :
+Pour chaque phase (Digestion, Insuline en baisse, Bascule vers les graisses, Cétose légère, Jeûne prolongé) :
 - **ce que fait ton corps**,
 - **ce que dit la science**, chaque affirmation reliée à une étude avec son niveau de preuve (humain ou animal),
-- **les bienfaits**,
+- **ce que tu y gagnes**,
 - **comment tenir**.
 
-Les repères sont approximatifs et ne remplacent pas un avis médical.
+Tout est lisible dans l'onglet « Bienfaits du jeûne » de Notes, une phase à la fois. Les repères d'heures sont approximatifs.
 
 ### 3. Un bouton « J'ai envie de craquer »
 Un bouton rouge-orangé, toujours accessible depuis l'accueil. Il ouvre un écran de secours : un minuteur de 10 minutes, des astuces concrètes, ton « pourquoi » écrit par toi, et un rappel de ta série.
@@ -51,7 +51,8 @@ Un bouton rouge-orangé, toujours accessible depuis l'accueil. Il ouvre un écra
 - **Série** de jours tenus, affichée partout.
 - **Calendrier** mensuel avec trois états : tenu, partiel, vide.
 - **Règle de tolérance** : un jour tenu partiellement (12 h ou plus, sous l'objectif) **garde la série sans la faire grandir**. Sous 12 h, la série casse.
-- **Stats** (durée moyenne, taux de réussite) et **Notes** (poids, avancées, doutes, « mon pourquoi ») pour voir le chemin parcouru.
+- **Stats** (durée moyenne, record, objectifs tenus, meilleure série, durée par jour) pour voir le chemin parcouru.
+- **Notes**, en trois onglets. « Mes notes » : poids avec **objectif et barre de progression**, avancées, doutes, victoires et « mon pourquoi ». Chaque note porte une **humeur de 1 à 5** et le temps de jeûne au moment où elle est écrite, pour comprendre plus tard ce qui aide à tenir. « Bienfaits du jeûne » : les phases en détail, avec études. « Astuces » : de quoi tenir plus longtemps.
 
 ## Parcours type
 

@@ -5,9 +5,9 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Text } from '../components/Text';
 import { NoteCard } from '../components/NoteCard';
-import { Card, PrimaryButton, Screen, SectionTitle } from '../components/ui';
+import { Card, PrimaryButton, Screen, SectionTitle, TextButton } from '../components/ui';
 import { useFast } from '../data/FastContext';
-import { MEDICAL_NOTE, PHASES, TIPS } from '../data/phases';
+import { PHASES, TIP_GROUPS, evidenceLabel } from '../data/phases';
 import { useNotesData } from '../data/useNotesData';
 import { formatHoursMinutes, relativeDayLabel } from '../logic/dates';
 import { phaseHistory } from '../logic/phaseStats';
@@ -151,50 +151,38 @@ export default function MonJeuneScreen() {
 
         <Card style={{ borderRadius: 26, gap: 12 }}>
           <SectionTitle>Ce que dit la science</SectionTitle>
-          <Text style={styles.muted}>
-            Chaque affirmation sera reliée à son étude, avec le niveau de preuve : humain ou animal.
-          </Text>
-          {phase.studies.length === 0 ? (
-            <View style={styles.study}>
-              <Text style={styles.studyTitle}>[Étude à ajouter]</Text>
-              <Text style={styles.muted}>Auteurs, année, revue</Text>
-              <Text style={styles.body}>Résumé en une phrase, tiré de l’étude.</Text>
-            </View>
-          ) : (
-            phase.studies.map((s) => (
-              <View key={s.title} style={styles.study}>
-                <Text style={styles.studyTitle}>{s.title}</Text>
-                <Text style={styles.muted}>{s.source}</Text>
-                <Text style={styles.body}>{s.summary}</Text>
-                <Text style={styles.evidence}>Preuve : {s.evidence}</Text>
-              </View>
-            ))
-          )}
-        </Card>
-
-        <Card style={{ borderRadius: 26 }}>
-          <SectionTitle>Les bienfaits</SectionTitle>
-          {phase.benefits.map((b) => (
-            <View key={b} style={styles.bullet}>
-              <View style={styles.dot} />
-              <Text style={styles.body}>{b}</Text>
+          <Text style={styles.muted}>{phase.level}</Text>
+          {phase.studies.map((s) => (
+            <View key={s.title + s.summary} style={styles.study}>
+              <Text style={styles.studyTitle}>{s.title}</Text>
+              <Text style={styles.muted}>{s.source}</Text>
+              <Text style={styles.body}>{s.summary}</Text>
+              <Text style={styles.evidence}>{evidenceLabel(s.evidence)}</Text>
             </View>
           ))}
         </Card>
 
+        <Card style={{ borderRadius: 26 }}>
+          <SectionTitle>{phase.gainLabel}</SectionTitle>
+          <Text style={styles.body}>{phase.gain}</Text>
+        </Card>
+
         <Card style={{ borderRadius: 26, gap: 12 }}>
           <SectionTitle>Comment tenir</SectionTitle>
-          {TIPS.map((t, i) => (
+          {TIP_GROUPS[0].tips.slice(0, 3).map((t, i) => (
             <View key={t.title} style={{ gap: 2 }}>
               {i > 0 && <View style={styles.sep} />}
               <Text style={styles.tipTitle}>{t.title}</Text>
               <Text style={styles.muted}>{t.text}</Text>
             </View>
           ))}
+          <TextButton
+            label="Toutes les astuces"
+            onPress={() => router.push({ pathname: '/notes', params: { tab: 'astuces' } })}
+          />
         </Card>
 
         <PrimaryButton label="Noter un doute ou une victoire" onPress={() => router.push('/notes')} />
-        <Text style={styles.disclaimer}>{MEDICAL_NOTE}</Text>
       </ScrollView>
     </Screen>
   );
@@ -255,9 +243,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
   },
-  bullet: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.emerald, marginTop: 7 },
   sep: { height: 1, backgroundColor: '#E2EDE5', marginBottom: 10 },
   tipTitle: { fontSize: 14, fontWeight: '800', color: colors.text },
-  disclaimer: { fontSize: 11, lineHeight: 16, color: colors.muted, textAlign: 'center' },
 });

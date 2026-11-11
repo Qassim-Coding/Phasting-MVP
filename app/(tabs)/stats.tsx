@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Text } from '../../components/Text';
+import { CoffeeCard } from '../../components/CoffeeCard';
 import { Sparkline } from '../../components/Sparkline';
 import { Card, Screen } from '../../components/ui';
 import { useFast } from '../../data/FastContext';
@@ -193,6 +194,8 @@ export default function StatsScreen() {
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.muted} />
         </Pressable>
+
+        <CoffeeCard />
       </ScrollView>
     </Screen>
   );

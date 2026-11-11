@@ -63,6 +63,17 @@ export default function CraquerScreen() {
   const remaining = Math.max(0, targetMs - elapsed);
   const phase = getPhase(elapsed);
   const elapsedHours = elapsed / 3600000;
+  // Le titre suit l'avancement : « Tu y es presque » seulement quand l'objectif approche vraiment.
+  const progress = targetMs > 0 ? elapsed / targetMs : 0;
+  const heroTitle = !fasting
+    ? 'Tu peux y arriver.'
+    : progress >= 1
+      ? 'Tu as tenu ton objectif.'
+      : progress >= 0.8
+        ? 'Tu y es presque.'
+        : progress >= 0.4
+          ? 'Tu avances bien.'
+          : 'Tu as déjà commencé.';
 
   const summary = useMemo(() => summarizeCravings(cravings), [cravings]);
   const recordHeld = useMemo(() => (history.length > 0 ? Math.max(...history.map(heldHoursOf)) : null), [history]);
@@ -126,13 +137,13 @@ export default function CraquerScreen() {
 
         <Card style={{ backgroundColor: colors.sosTint, borderRadius: 28, padding: 22, gap: 10 }}>
           <Text style={styles.kicker}>Respire un instant</Text>
-          <Text style={styles.heroTitle}>{fasting ? 'Tu y es presque.' : 'Tu peux y arriver.'}</Text>
+          <Text style={styles.heroTitle}>{heroTitle}</Text>
           {fasting ? (
             <Text style={styles.heroText}>
               Tu tiens depuis <Text style={styles.strong}>{formatHoursMinutes(elapsed / 3600000)}</Text>.
               {remaining > 0 ? (
                 <>
-                  {' '}Il ne reste que{' '}
+                  {' '}{remaining <= 4 * 3600000 ? 'Il ne reste que' : 'Il reste'}{' '}
                   <Text style={styles.strong}>{formatHoursMinutes(remaining / 3600000)}</Text> jusqu’à ton objectif.
                 </>
               ) : (
@@ -266,11 +277,13 @@ export default function CraquerScreen() {
         <Card dark style={{ borderRadius: 26 }}>
           <Text style={styles.kickerDark}>Ton pourquoi</Text>
           <Text style={styles.why}>{why.trim() ? why : 'Écris ton pourquoi dans Notes : il apparaîtra ici.'}</Text>
-          <TextButton
-            label="Modifier dans Notes"
+          <Pressable
+            accessibilityRole="button"
             onPress={() => router.push('/notes')}
-            style={{ alignSelf: 'flex-start', minHeight: 44 }}
-          />
+            style={{ alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' }}
+          >
+            <Text style={styles.whyLink}>Modifier dans Notes</Text>
+          </Pressable>
         </Card>
 
         {fasting && (
@@ -336,6 +349,7 @@ const styles = StyleSheet.create({
   },
   helpTitle: { fontSize: 14, fontWeight: '800', color: colors.text },
   kickerDark: { fontSize: 12, fontWeight: '800', color: colors.mint },
+  whyLink: { fontSize: 14, fontWeight: '800', color: colors.mint },
   why: { fontFamily: titleFont, fontSize: 19, lineHeight: 26, color: colors.onDeep },
   streakCard: {
     flexDirection: 'row',

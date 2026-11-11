@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Text } from '../../components/Text';
+import { AstucesView } from '../../components/AstucesView';
+import { BienfaitsView } from '../../components/BienfaitsView';
 import { EditSheet } from '../../components/EditSheet';
 import { NoteCard } from '../../components/NoteCard';
 import { Sparkline } from '../../components/Sparkline';
@@ -14,6 +16,7 @@ import { formatKg, parseKg, weightInfo } from '../../logic/weight';
 import { bodyFonts, colors, titleFont } from '../../theme';
 
 type Filter = 'tout' | 'poids' | NoteKind;
+type Tab = 'notes' | 'bienfaits' | 'astuces';
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'tout', label: 'Tout' },
@@ -23,16 +26,37 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: 'victoire', label: 'Victoires' },
 ];
 
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'notes', label: 'Mes notes' },
+  { id: 'bienfaits', label: 'Bienfaits du jeûne' },
+  { id: 'astuces', label: 'Astuces' },
+];
+
+// Écran Notes à trois onglets : Mes notes (pourquoi, poids, notes), Bienfaits du jeûne (les 5 phases sourcées), Astuces.
+// Un autre écran peut ouvrir directement un onglet : router.push({ pathname: '/notes', params: { tab: 'astuces' } }).
 export default function NotesScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ tab?: string }>();
   const { notes, goal, why, reload } = useNotesData();
+  const [tab, setTab] = useState<Tab>('notes');
   const [filter, setFilter] = useState<Filter>('tout');
+  const scrollRef = useRef<ScrollView>(null);
 
   const [whyOpen, setWhyOpen] = useState(false);
   const [whyDraft, setWhyDraft] = useState('');
   const [goalOpen, setGoalOpen] = useState(false);
   const [startDraft, setStartDraft] = useState('');
   const [targetDraft, setTargetDraft] = useState('');
+
+  // Ouverture directe d'un onglet depuis un autre écran.
+  useEffect(() => {
+    if (params.tab === 'notes' || params.tab === 'bienfaits' || params.tab === 'astuces') setTab(params.tab);
+  }, [params.tab]);
+
+  // Chaque changement d'onglet repart du haut de la page.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [tab]);
 
   const weight = useMemo(() => weightInfo(notes, goal), [notes, goal]);
   const visible = useMemo(
@@ -67,7 +91,7 @@ export default function NotesScreen() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 12 }} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 20, gap: 12 }} keyboardShouldPersistTaps="handled">
         <View style={styles.head}>
           <Text style={styles.title}>Notes</Text>
           <Pressable
@@ -80,92 +104,118 @@ export default function NotesScreen() {
           </Pressable>
         </View>
 
-        <Card dark style={{ borderRadius: 26, paddingVertical: 16, gap: 6 }}>
-          <View style={styles.whyHead}>
-            <Text style={styles.kickerDark}>Mon pourquoi</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Modifier mon pourquoi" onPress={openWhy} style={styles.iconBtn}>
-              <Ionicons name="pencil" size={18} color={colors.mint} />
-            </Pressable>
-          </View>
-          <Text style={styles.why}>{why.trim() ? why : 'Écris ce qui te donne envie de tenir. Il s’affichera quand tu voudras craquer.'}</Text>
-        </Card>
-
-        <Card style={{ borderRadius: 24, padding: 16, gap: 10 }}>
-          <View style={styles.weightTop}>
-            <View style={{ gap: 2, flex: 1 }}>
-              <Text style={styles.label}>Poids</Text>
-              {weight.current !== null ? (
-                <>
-                  <Text style={styles.weightValue}>{formatKg(weight.current)}</Text>
-                  {weight.delta !== null && Math.abs(weight.delta) >= 0.05 && (
-                    <Text style={styles.delta}>
-                      {weight.delta < 0 ? '−' : '+'} {formatKg(Math.abs(weight.delta))} depuis le départ
-                    </Text>
-                  )}
-                </>
-              ) : (
-                <Text style={styles.muted}>Aucune pesée pour l’instant.</Text>
-              )}
-            </View>
-            <Sparkline values={weight.points.map((p) => p.kg)} width={140} height={64} />
-          </View>
-
-          {weight.target !== null && weight.start !== null && weight.progress !== null && weight.remaining !== null ? (
-            <View style={{ gap: 6 }}>
-              <View style={styles.goalRow}>
-                <Text style={styles.label}>Départ {formatKg(weight.start)}</Text>
-                <Text style={styles.goalTarget}>Objectif {formatKg(weight.target)}</Text>
-              </View>
-              <View style={styles.bar}>
-                <View style={[styles.barFill, { width: `${Math.round(weight.progress * 100)}%` }]} />
-              </View>
-              <Text style={styles.label}>
-                {weight.remaining < 0.05
-                  ? 'Objectif atteint, bravo !'
-                  : `Encore ${formatKg(weight.remaining)} · tu as fait ${Math.round(weight.progress * 100)} % du chemin`}
-              </Text>
-            </View>
-          ) : (
-            <Pressable accessibilityRole="button" onPress={openGoal}>
-              <Text style={styles.link}>Définir un objectif de poids</Text>
-            </Pressable>
-          )}
-
-          <OutlineButton label="Ajouter mon poids" onPress={() => router.push('/ajouter-poids')} />
-          {weight.target !== null && (
-            <Pressable accessibilityRole="button" onPress={openGoal} style={{ alignSelf: 'center', minHeight: 36, justifyContent: 'center' }}>
-              <Text style={styles.link}>Modifier l’objectif</Text>
-            </Pressable>
-          )}
-        </Card>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          {FILTERS.map((f) => {
-            const on = f.id === filter;
+        <View style={styles.tabs}>
+          {TABS.map((t) => {
+            const on = t.id === tab;
             return (
               <Pressable
-                key={f.id}
+                key={t.id}
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
-                onPress={() => setFilter(f.id)}
-                style={[styles.chip, on && styles.chipOn]}
+                onPress={() => setTab(t.id)}
+                style={[styles.tab, on && styles.tabOn]}
               >
-                <Text style={[styles.chipText, on && { color: '#FFFFFF' }]}>{f.label}</Text>
+                <Text numberOfLines={1} style={[styles.tabText, on && { color: '#FFFFFF' }]}>
+                  {t.label}
+                </Text>
               </Pressable>
             );
           })}
-        </ScrollView>
+        </View>
 
-        {visible.length === 0 ? (
-          <Card style={{ borderRadius: 20 }}>
-            <Text style={styles.muted}>
-              {notes.length === 0
-                ? 'Pas encore de note. Appuie sur « + » pour écrire une victoire, un doute ou ta pesée du jour.'
-                : 'Aucune note dans cette catégorie.'}
-            </Text>
-          </Card>
-        ) : (
-          visible.map((n) => <NoteCard key={n.id} note={n} />)
+        {tab === 'bienfaits' && <BienfaitsView />}
+        {tab === 'astuces' && <AstucesView />}
+
+        {tab === 'notes' && (
+          <>
+            <Card dark style={{ borderRadius: 26, paddingVertical: 16, gap: 6 }}>
+              <View style={styles.whyHead}>
+                <Text style={styles.kickerDark}>Mon pourquoi</Text>
+                <Pressable accessibilityRole="button" accessibilityLabel="Modifier mon pourquoi" onPress={openWhy} style={styles.iconBtn}>
+                  <Ionicons name="pencil" size={18} color={colors.mint} />
+                </Pressable>
+              </View>
+              <Text style={styles.why}>{why.trim() ? why : 'Écris ce qui te donne envie de tenir. Il s’affichera quand tu voudras craquer.'}</Text>
+            </Card>
+
+            <Card style={{ borderRadius: 24, padding: 16, gap: 10 }}>
+              <View style={styles.weightTop}>
+                <View style={{ gap: 2, flex: 1 }}>
+                  <Text style={styles.label}>Poids</Text>
+                  {weight.current !== null ? (
+                    <>
+                      <Text style={styles.weightValue}>{formatKg(weight.current)}</Text>
+                      {weight.delta !== null && Math.abs(weight.delta) >= 0.05 && (
+                        <Text style={styles.delta}>
+                          {weight.delta < 0 ? '−' : '+'} {formatKg(Math.abs(weight.delta))} depuis le départ
+                        </Text>
+                      )}
+                    </>
+                  ) : (
+                    <Text style={styles.muted}>Aucune pesée pour l’instant.</Text>
+                  )}
+                </View>
+                <Sparkline values={weight.points.map((p) => p.kg)} width={140} height={64} />
+              </View>
+
+              {weight.target !== null && weight.start !== null && weight.progress !== null && weight.remaining !== null ? (
+                <View style={{ gap: 6 }}>
+                  <View style={styles.goalRow}>
+                    <Text style={styles.label}>Départ {formatKg(weight.start)}</Text>
+                    <Text style={styles.goalTarget}>Objectif {formatKg(weight.target)}</Text>
+                  </View>
+                  <View style={styles.bar}>
+                    <View style={[styles.barFill, { width: `${Math.round(weight.progress * 100)}%` }]} />
+                  </View>
+                  <Text style={styles.label}>
+                    {weight.remaining < 0.05
+                      ? 'Objectif atteint, bravo !'
+                      : `Encore ${formatKg(weight.remaining)} · tu as fait ${Math.round(weight.progress * 100)} % du chemin`}
+                  </Text>
+                </View>
+              ) : (
+                <Pressable accessibilityRole="button" onPress={openGoal}>
+                  <Text style={styles.link}>Définir un objectif de poids</Text>
+                </Pressable>
+              )}
+
+              <OutlineButton label="Ajouter mon poids" onPress={() => router.push('/ajouter-poids')} />
+              {weight.target !== null && (
+                <Pressable accessibilityRole="button" onPress={openGoal} style={{ alignSelf: 'center', minHeight: 36, justifyContent: 'center' }}>
+                  <Text style={styles.link}>Modifier l’objectif</Text>
+                </Pressable>
+              )}
+            </Card>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+              {FILTERS.map((f) => {
+                const on = f.id === filter;
+                return (
+                  <Pressable
+                    key={f.id}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: on }}
+                    onPress={() => setFilter(f.id)}
+                    style={[styles.chip, on && styles.chipOn]}
+                  >
+                    <Text style={[styles.chipText, on && { color: '#FFFFFF' }]}>{f.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+
+            {visible.length === 0 ? (
+              <Card style={{ borderRadius: 20 }}>
+                <Text style={styles.muted}>
+                  {notes.length === 0
+                    ? 'Pas encore de note. Appuie sur « + » pour écrire une victoire, un doute ou ta pesée du jour.'
+                    : 'Aucune note dans cette catégorie.'}
+                </Text>
+              </Card>
+            ) : (
+              visible.map((n) => <NoteCard key={n.id} note={n} />)
+            )}
+          </>
         )}
       </ScrollView>
 
@@ -194,6 +244,10 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
   title: { fontFamily: titleFont, fontSize: 24, fontWeight: '600', color: colors.text },
   add: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.emerald, alignItems: 'center', justifyContent: 'center' },
+  tabs: { flexDirection: 'row', gap: 2, padding: 4, borderRadius: 24, backgroundColor: colors.soft },
+  tab: { flexGrow: 1, flexShrink: 1, minHeight: 44, paddingHorizontal: 10, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  tabOn: { backgroundColor: colors.emerald },
+  tabText: { fontSize: 13, fontWeight: '800', color: colors.muted },
   whyHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   iconBtn: { width: 44, height: 44, margin: -10, alignItems: 'center', justifyContent: 'center' },
   kickerDark: { fontSize: 12, fontWeight: '800', color: colors.mint },

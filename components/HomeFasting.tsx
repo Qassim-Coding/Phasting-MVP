@@ -4,6 +4,7 @@ import React from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from './Text';
+import { showInterstitialIfDue } from '../data/ads';
 import { useFast } from '../data/FastContext';
 import { formatHoursMinutes } from '../logic/dates';
 import { colors, titleFont } from '../theme';
@@ -15,7 +16,7 @@ import { OutlineButton } from './ui';
 // Accueil, état 2 : un jeûne est en cours.
 export function HomeFasting() {
   const router = useRouter();
-  const { now, fast, stop, setStartedAt } = useFast();
+  const { now, fast, stop, setStartedAt, history } = useFast();
 
   const startedAt = fast.startedAt ?? now;
   const elapsed = Math.max(0, now - startedAt);
@@ -36,6 +37,9 @@ export function HomeFasting() {
         onPress: async () => {
           try {
             await stop();
+            // Pub plein écran après un jeûne terminé (jamais depuis « J'ai envie de craquer »).
+            // `history` est la liste d'avant ce jeûne : +1 pour le compter.
+            void showInterstitialIfDue(history.length + 1);
           } catch {
             Alert.alert('Oups', 'Le jeûne n’a pas pu être terminé. Réessaie dans un instant.');
           }

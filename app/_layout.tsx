@@ -12,6 +12,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 
+import { initAds } from '../data/ads';
 import { FastProvider } from '../data/FastContext';
 
 // L'écran de démarrage reste affiché tant que les polices ne sont pas prêtes.
@@ -32,6 +33,11 @@ export default function RootLayout() {
     // En cas d'erreur de chargement, on affiche quand même l'app avec la police du système.
     if (fontsLoaded || fontError) SplashScreen.hideAsync();
   }, [fontsLoaded, fontError]);
+
+  // Prépare les pubs (et le message de consentement RGPD) une fois au démarrage. Sans effet dans Expo Go.
+  useEffect(() => {
+    initAds();
+  }, []);
 
   if (!fontsLoaded && !fontError) return null;
 
