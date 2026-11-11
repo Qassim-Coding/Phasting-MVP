@@ -54,6 +54,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="protocole" />
         <Stack.Screen name="mon-jeune" />
+        <Stack.Screen name="reglages" />
         <Stack.Screen name="reglages-widget" />
         <Stack.Screen name="rappels" />
         <Stack.Screen name="craquer" options={{ presentation: 'modal' }} />

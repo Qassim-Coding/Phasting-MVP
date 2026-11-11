@@ -31,6 +31,7 @@ Phasting-MVP/
 │   ├── protocole.tsx             📦 choix du protocole
 │   ├── mon-jeune.tsx             📦 fiche de phase + ton parcours dans cette phase
 │   ├── craquer.tsx               📦 écran SOS
+│   ├── reglages.tsx              🆕 accueil des réglages : une carte, une ligne par réglage (Rappels, Widget)
 │   ├── reglages-widget.tsx       📦 réglages des widgets : lignes affichées, anneau, transparence, couleur, thème
 │   ├── rappels.tsx               🆕 Rappels : un interrupteur par phase (2 à 5), emojis, « mon pourquoi », ma phrase, notification d'exemple
 │   ├── nouvelle-note.tsx         📦 saisie d'une note (type, humeur, texte)
@@ -48,7 +49,7 @@ Phasting-MVP/
 │   ├── CoffeeCard.tsx            📦 carte « Offre-moi un café » (lien vers Buy Me a Coffee ou Ko-fi), en bas de Stats
 │   ├── BienfaitsView.tsx         📦 onglet « Bienfaits du jeûne » : une phase à la fois, avec études et niveau de preuve
 │   ├── AstucesView.tsx           📦 onglet « Astuces » : astuces pour tenir, en deux groupes, + accès à « J'ai envie de craquer »
-│   ├── TopBar.tsx                📦 série + réglages (menu Rappels / Widget) + pastille du protocole
+│   ├── TopBar.tsx                📦 série + engrenage (ouvre Réglages) + pastille du protocole
 │   ├── pickStartTime.ts          📦 sélecteurs natifs Android : calendrier puis horloge
 │   ├── HomeReady.tsx             📦 accueil « prêt à commencer »
 │   ├── HomeFasting.tsx           📦 accueil « en jeûne »
@@ -104,6 +105,7 @@ La fenêtre de repas n'a pas de fichier à part : c'est le troisième état de l
 | `(tabs)/calendrier.tsx` | Mois avec états tenu / partiel / vide, point sur les jours avec note, détail du jour (jeûnes, poids, notes), bilan du mois. |
 | `(tabs)/stats.tsx` | Durée moyenne, record, objectifs tenus, meilleure série, barres par jour, poids. |
 | `(tabs)/notes.tsx` | Trois onglets. « Mes notes » : « Mon pourquoi », poids avec objectif, filtres, liste de notes avec humeur. « Bienfaits du jeûne » : `BienfaitsView`. « Astuces » : `AstucesView`. Un autre écran peut ouvrir un onglet : `router.push({ pathname: '/notes', params: { tab: 'astuces' } })`. |
+| `reglages.tsx` | Écran Réglages (maquette `Reglages.dc.html`) : carte « Mon jeûne » avec les lignes Rappels (pastille « N actifs ») et Widget. Remplace l'ancien menu système. Pour un nouveau réglage, ajouter une `<SettingRow>`. |
 | `rappels.tsx` | Écran Rappels (maquette `Rappels.dc.html`). 4 interrupteurs (phases 2 à 5, après 4, 8, 12, 16 h), « Emojis au hasard », « Rappeler mon pourquoi », champ « Ma phrase à moi », bouton « Recevoir une notification d'exemple ». Active un interrupteur → Android demande l'autorisation (13 et plus). Enregistre à chaque changement puis reprogramme les notifications. |
 | `reglages-widget.tsx` | Aperçu du widget, interrupteurs d'affichage, épaisseur d'anneau et transparence (boutons − / +), couleur d'accent, thème. Redessine les widgets à chaque changement. |
 | `nouvelle-note.tsx` | Type (avancée, doute, victoire), humeur (1 à 5), texte libre ; liée au jeûne en cours. |
@@ -125,9 +127,9 @@ La fenêtre de repas n'a pas de fichier à part : c'est le troisième état de l
 | `CoffeeCard.tsx` | Carte « Offre-moi un café » : ouvre ta page de dons dans le navigateur. Cachée tant que l'adresse contient TON_PSEUDO. |
 | `BienfaitsView.tsx` | Onglet « Bienfaits du jeûne » de Notes. Pastilles 1 à 5, carte de phase (heures, niveau de preuve, « Tu es ici »), « Ce qui se passe », « Ce que tu y gagnes », « Ce que dit la science », boutons phase précédente / suivante. S'ouvre sur ta phase en cours. |
 | `AstucesView.tsx` | Onglet « Astuces » de Notes : astuces en deux groupes (« Quand la faim arrive », dont « Dors : qui dort dîne », et « Avant de commencer le jeûne », dont la ghréline avec sa source), mention « astuces d'usage », lien vers « J'ai envie de craquer ». |
-| `TopBar.tsx` | Nom, série en jours, bouton Réglages (un menu : Rappels ou Widget), pastille du protocole. |
+| `TopBar.tsx` | Nom, série en jours, engrenage (ouvre l'écran Réglages), pastille du protocole. |
 | `pickStartTime.ts` | Ouvre les sélecteurs natifs d'Android (date, puis heure) et renvoie l'heure choisie, ou rien si on annule. Refuse une heure dans le futur. |
-| `HomeReady.tsx`, `HomeFasting.tsx`, `HomeMeal.tsx` | Les trois états de l'accueil. |
+| `HomeReady.tsx`, `HomeFasting.tsx`, `HomeMeal.tsx` | Les trois états de l'accueil. Dans `HomeMeal`, le mot sous la durée tenue : « Objectif atteint » (objectif tenu), « Bien joué » (12 h et plus), « Bien tenté » (moins de 12 h, avec une phrase d'encouragement). |
 
 ### `data/` et `logic/`
 | Fichier | Rôle |
@@ -194,6 +196,7 @@ Elles vivent dans le canvas Design, pas dans le dépôt.
 | `Widget.dc.html` | `ElapsedWidget.tsx` |
 | `WidgetDetail.dc.html` | `DetailWidget.tsx` |
 | `Settings.dc.html` | réglages du widget (`reglages-widget.tsx`) |
+| `Reglages.dc.html` | `reglages.tsx` |
 | `Rappels.dc.html` | `rappels.tsx` |
 | `RappelsNotifs.dc.html` | exemples de notifications (textes de `reminders.ts`) |
 | `Icons.dc.html` | choix de l'icône (tranché : le sablier) |

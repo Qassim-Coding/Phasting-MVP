@@ -39,7 +39,7 @@ export function HomeMeal({ record }: { record: FastRecord }) {
       ? `Ta série passe à ${streak} ${streak > 1 ? 'jours' : 'jour'}.`
       : status === 'partial'
         ? 'Ta série est gardée, elle ne grandit pas aujourd’hui.'
-        : 'La prochaine fois sera la bonne.';
+        : 'C’est déjà un début : la prochaine fois sera la bonne.';
 
   return (
     <>
@@ -52,7 +52,7 @@ export function HomeMeal({ record }: { record: FastRecord }) {
         >
           <Text style={styles.small}>Jeûne terminé</Text>
           <Text style={styles.big}>{heldLabel}</Text>
-          <Text style={styles.ok}>{status === 'done' ? 'Objectif atteint' : 'Bien joué'}</Text>
+          <Text style={styles.ok}>{status === 'done' ? 'Objectif atteint' : status === 'partial' ? 'Bien joué' : 'Bien tenté'}</Text>
         </ProgressRing>
       </View>
 

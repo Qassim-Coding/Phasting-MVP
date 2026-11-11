@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from './Text';
 import { useFast } from '../data/FastContext';
 import { colors, titleFont } from '../theme';
 
-// Barre du haut de l'accueil : nom, série, réglages (Rappels ou Widget), pastille du protocole (ouvre le choix du protocole).
+// Barre du haut de l'accueil : nom, série, engrenage vers l'écran Réglages, pastille du protocole (ouvre le choix du protocole).
 export function TopBar() {
   const router = useRouter();
   const { streak, protocol } = useFast();
@@ -23,16 +23,10 @@ export function TopBar() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Réglages"
-          onPress={() =>
-            Alert.alert('Réglages', undefined, [
-              { text: 'Rappels', onPress: () => router.push('/rappels') },
-              { text: 'Widget', onPress: () => router.push('/reglages-widget') },
-              { text: 'Annuler', style: 'cancel' },
-            ])
-          }
+          onPress={() => router.push('/reglages')}
           style={styles.gear}
         >
-          <Ionicons name="options-outline" size={22} color={colors.emeraldText} />
+          <Ionicons name="settings-outline" size={22} color={colors.emeraldText} />
         </Pressable>
         <Pressable
           accessibilityRole="button"
