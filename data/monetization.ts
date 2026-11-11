@@ -26,7 +26,7 @@ export const ADS = {
 
 export const COFFEE = {
   enabled: true,
-  // Remplace TON_PSEUDO par ton adresse Buy Me a Coffee ou Ko-fi. Tant que le texte TON_PSEUDO reste dans
-  // l'adresse, la carte « café » ne s'affiche pas (on ne publie pas un lien vide par erreur).
-  url: 'https://buymeacoffee.com/TON_PSEUDO',
+  // Adresse de ta page Buy Me a Coffee. À VÉRIFIER : ouvre ce lien dans un navigateur, ta page doit s'afficher.
+  // Si tu remets le texte TON_PSEUDO dans l'adresse, la carte « café » se cache (on ne publie pas un lien faux).
+  url: 'https://buymeacoffee.com/QassimCoding',
 };
