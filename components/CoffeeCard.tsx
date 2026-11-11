@@ -23,7 +23,10 @@ export function CoffeeCard() {
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={styles.title}>Offre-moi un café</Text>
-        <Text style={styles.text}>Phasting est fait par une seule personne. Un café aide à le faire grandir.</Text>
+        <Text style={styles.text}>
+          Si Phasting t’aide à tenir, tu peux me soutenir pour le prix d’un café. C’est facultatif, mais cela aide à le
+          maintenir en vie.
+        </Text>
       </View>
       <Ionicons name="open-outline" size={18} color={colors.muted} />
     </Pressable>

@@ -4,6 +4,7 @@ import { computeBestStreak, computeStreak } from '../logic/streak';
 import { type FastState, loadFast, saveFast } from '../widgets/fastState';
 import { refreshWidget } from '../widgets/refreshWidget';
 import { DEFAULT_PROTOCOL_ID, type Protocol, getProtocol } from './protocols';
+import { syncReminders } from './reminders';
 import {
   type FastRecord,
   addRecord,
@@ -60,6 +61,12 @@ export function FastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const protocol = getProtocol(protocolId);
+
+  // Rappels de phase : reprogrammés au lancement, au démarrage, à l'arrêt et quand l'heure de début change.
+  useEffect(() => {
+    if (!ready) return;
+    void syncReminders(fast);
+  }, [ready, fast]);
 
   const persist = useCallback(async (next: FastState) => {
     setFast(next);

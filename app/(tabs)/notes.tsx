@@ -10,6 +10,7 @@ import { EditSheet } from '../../components/EditSheet';
 import { NoteCard } from '../../components/NoteCard';
 import { Sparkline } from '../../components/Sparkline';
 import { Card, OutlineButton, Screen } from '../../components/ui';
+import { syncReminders } from '../../data/reminders';
 import { type NoteKind, saveGoal, saveWhy } from '../../data/storage';
 import { useNotesData } from '../../data/useNotesData';
 import { formatKg, parseKg, weightInfo } from '../../logic/weight';
@@ -219,7 +220,7 @@ export default function NotesScreen() {
         )}
       </ScrollView>
 
-      <EditSheet visible={whyOpen} title="Mon pourquoi" onCancel={() => setWhyOpen(false)} onSave={async () => { await saveWhy(whyDraft.trim()); setWhyOpen(false); await reload(); }}>
+      <EditSheet visible={whyOpen} title="Mon pourquoi" onCancel={() => setWhyOpen(false)} onSave={async () => { await saveWhy(whyDraft.trim()); void syncReminders(); setWhyOpen(false); await reload(); }}>
         <TextInput
           value={whyDraft}
           onChangeText={setWhyDraft}

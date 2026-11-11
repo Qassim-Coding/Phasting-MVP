@@ -14,6 +14,7 @@ import React, { useEffect } from 'react';
 
 import { initAds } from '../data/ads';
 import { FastProvider } from '../data/FastContext';
+import { initReminders } from '../data/reminders';
 
 // L'écran de démarrage reste affiché tant que les polices ne sont pas prêtes.
 SplashScreen.preventAutoHideAsync();
@@ -39,6 +40,11 @@ export default function RootLayout() {
     initAds();
   }, []);
 
+  // Prépare les notifications de phase (canal Android, affichage quand l'app est ouverte). Sans effet dans Expo Go.
+  useEffect(() => {
+    initReminders();
+  }, []);
+
   if (!fontsLoaded && !fontError) return null;
 
   return (
@@ -49,6 +55,7 @@ export default function RootLayout() {
         <Stack.Screen name="protocole" />
         <Stack.Screen name="mon-jeune" />
         <Stack.Screen name="reglages-widget" />
+        <Stack.Screen name="rappels" />
         <Stack.Screen name="craquer" options={{ presentation: 'modal' }} />
         <Stack.Screen name="nouvelle-note" options={{ presentation: 'modal' }} />
         <Stack.Screen name="ajouter-poids" options={{ presentation: 'modal' }} />
