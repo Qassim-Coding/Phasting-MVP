@@ -41,8 +41,12 @@ export function initAds(): Promise<boolean> {
       if (!m) return false;
       try {
         // Affiche le message de consentement si la loi l'exige pour cet utilisateur, puis mémorise son choix.
-        const info = await m.AdsConsent.gatherConsent();
-        if (info && info.canRequestAds === false) return false;
+        // En mode test, une erreur ou un refus de consentement n'empêche pas la fausse pub (pas encore de message chez AdMob).
+        const info = await m.AdsConsent.gatherConsent().catch((e: unknown) => {
+          if (!ADS.testMode) throw e;
+          return null;
+        });
+        if (!ADS.testMode && info && info.canRequestAds === false) return false;
         await m.default().setRequestConfiguration({
           testDeviceIdentifiers: ['EMULATOR', ...ADS.testDevices],
           maxAdContentRating: m.MaxAdContentRating?.[ADS.maxRating],

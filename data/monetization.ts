@@ -5,6 +5,10 @@
 export const ADS = {
   // Mettre false pour couper toutes les pubs (par exemple pour une version sans pub).
   enabled: true,
+  // Mode test : tant que c'est true, on affiche de fausses pubs et on ignore le blocage du consentement RGPD
+  // (le message de consentement n'existe pas encore chez AdMob). À passer à false le jour où tu mets de vrais
+  // identifiants : dès lors, pas de consentement = pas de pub.
+  testMode: true,
   // Identifiant de TEST d'une pub plein écran (« interstitielle »). À remplacer par ton vrai identifiant AdMob
   // seulement quand l'app est publiée (étape 7 du guide).
   interstitialUnitId: 'ca-app-pub-3940256099942544/1033173712',
