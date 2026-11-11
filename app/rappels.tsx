@@ -130,7 +130,7 @@ export default function RappelsScreen() {
           ))}
         </Card>
 
-        <Card style={[styles.card, { paddingBottom: 16 }]}>
+        <Card style={{ ...styles.card, paddingBottom: 16 }}>
           <Text style={styles.kicker}>Mes encouragements</Text>
           <Row
             label="Emojis au hasard"
