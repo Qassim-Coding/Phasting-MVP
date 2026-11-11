@@ -4,7 +4,7 @@ import React from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from './Text';
-import { showInterstitialIfDue } from '../data/ads';
+import { prepareInterstitial, showInterstitialIfDue } from '../data/ads';
 import { useFast } from '../data/FastContext';
 import { formatHoursMinutes } from '../logic/dates';
 import { colors, titleFont } from '../theme';
@@ -25,6 +25,8 @@ export function HomeFasting() {
   const phase = getPhase(elapsed);
 
   const confirmStop = () => {
+    // On charge la pub pendant que l'utilisateur lit la confirmation : elle sera prête après « Terminer ».
+    void prepareInterstitial(history.length + 1);
     const held = elapsed / 3600000;
     const message =
       held >= fast.targetHours

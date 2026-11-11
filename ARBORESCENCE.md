@@ -131,7 +131,7 @@ La fenêtre de repas n'a pas de fichier à part : c'est le troisième état de l
 | `FastContext.tsx` | Le seul endroit qui connaît le jeûne. Expose `useFast()` : état, protocole, historique, série, et les actions (démarrer, terminer, changer l'heure, changer de protocole). Chaque action met le widget à jour. |
 | `protocols.ts` | Les 7 protocoles : 12:12, 14:10, 16:8, 18:6, 20:4, OMAD (23:1), 24 h. |
 | `monetization.ts` | Réglages des pubs (identifiants de test Google, une pub toutes les 20 h, 2 jeûnes sans pub, maturité maximale des pubs, mode test, téléphones de test) et adresse du café. |
-| `ads.ts` | `initAds()` au démarrage (consentement RGPD puis AdMob), `showInterstitialIfDue()` après « Terminer le jeûne ». Ne fait rien dans Expo Go, n'est jamais appelé depuis Craquer. |
+| `ads.ts` | `initAds()` au démarrage (consentement RGPD puis AdMob), `prepareInterstitial()` quand « Terminer le jeûne ? » s'ouvre (la pub se charge pendant la lecture), `showInterstitialIfDue()` après « Terminer ». Ne fait rien dans Expo Go, n'est jamais appelé depuis Craquer. |
 | `phases.ts` | Les 5 phases : noms, seuils, niveau de preuve, texte « ce qui se passe » (long pour les écrans, court pour le widget), bloc « ce que tu y gagnes » / « bon à savoir » / « à savoir », études (auteurs, année, revue, humain / animal / revue). Les astuces (`TIP_GROUPS`, `TIPS`). Sources : document « Phasting — contenu scientifique des phases ». Lu aussi par le widget : aucune bibliothèque d'interface dans ce fichier. |
 | `storage.ts` | Historique, notes, envies, « mon pourquoi », protocole choisi, objectif de poids. |
 | `useNotesData.ts` | Hook : charge notes, objectif et pourquoi ; recharge à chaque retour sur l'écran. |

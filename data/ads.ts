@@ -7,10 +7,13 @@ import { ADS } from './monetization';
 // - Expo Go ne contient pas le module natif des pubs : dans Expo Go, tout ce fichier ne fait rien.
 //   Les pubs n'existent que dans un vrai build (EAS). Rien ne plante pendant tes tests Expo Go.
 // - Le consentement RGPD (Suisse, UE, Royaume-Uni) est demandé avant la première pub.
-// - Une pub n'est montrée qu'après un jeûne terminé, jamais dans « J'ai envie de craquer ».
+// - La pub est préparée à l'avance (quand tu ouvres « Terminer le jeûne ? »), puis montrée juste après
+//   « Terminer ». Une pub préparée trop longtemps (plus de 50 min) est rechargée : Google les périme après 1 h.
+// - Une pub n'est montrée qu'après un jeûne terminé depuis l'accueil, jamais dans « J'ai envie de craquer ».
 
 const LAST_AD_KEY = 'phasting:lastAdAt';
-const LOAD_TIMEOUT_MS = 4000;
+const MAX_AGE_MS = 50 * 60 * 1000;
+const WAIT_FOR_LOAD_MS = 2500;
 
 const inExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
@@ -41,12 +44,21 @@ export function initAds(): Promise<boolean> {
       if (!m) return false;
       try {
         // Affiche le message de consentement si la loi l'exige pour cet utilisateur, puis mémorise son choix.
-        // En mode test, une erreur ou un refus de consentement n'empêche pas la fausse pub (pas encore de message chez AdMob).
-        const info = await m.AdsConsent.gatherConsent().catch((e: unknown) => {
-          if (!ADS.testMode) throw e;
-          return null;
-        });
-        if (!ADS.testMode && info && info.canRequestAds === false) return false;
+        // Si cette étape échoue, Google conseille de continuer avec le choix de la session précédente.
+        try {
+          await m.AdsConsent.gatherConsent();
+        } catch {
+          // on lit simplement le statut connu juste après
+        }
+        let canRequestAds = false;
+        try {
+          canRequestAds = (await m.AdsConsent.getConsentInfo()).canRequestAds === true;
+        } catch {
+          canRequestAds = false;
+        }
+        // En mode test, le consentement n'empêche pas la fausse pub (pas encore de message chez AdMob).
+        if (!canRequestAds && !ADS.testMode) return false;
+
         await m.default().setRequestConfiguration({
           testDeviceIdentifiers: ['EMULATOR', ...ADS.testDevices],
           maxAdContentRating: m.MaxAdContentRating?.[ADS.maxRating],
@@ -61,44 +73,83 @@ export function initAds(): Promise<boolean> {
   return ready;
 }
 
-// Montre une pub plein écran si les règles le permettent : assez de jeûnes terminés, délai respecté,
-// consentement donné, pub chargée en moins de 4 secondes. Sinon, ne fait rien (et ne bloque jamais l'app).
+// Vrai si les règles autorisent une pub maintenant : assez de jeûnes terminés, délai depuis la dernière pub respecté.
+async function isDue(completedFasts: number): Promise<boolean> {
+  if (completedFasts < ADS.freeFasts) return false;
+  const last = Number(await AsyncStorage.getItem(LAST_AD_KEY)) || 0;
+  return Date.now() - last >= ADS.cooldownHours * 3600000;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let loadedAd: any = null;
+let loadedAt = 0;
+let loading = false;
+
+const isFresh = () => loadedAd !== null && Date.now() - loadedAt < MAX_AGE_MS;
+
+// Charge une pub à l'avance si les règles l'autorisent. Sans attente : on l'appelle quand l'écran de
+// confirmation « Terminer le jeûne ? » s'ouvre, la pub est prête quand l'utilisateur appuie sur « Terminer ».
+export async function prepareInterstitial(completedFasts: number): Promise<void> {
+  try {
+    const m = getAds();
+    if (!m || loading || isFresh()) return;
+    if (!(await isDue(completedFasts))) return;
+    if (!(await initAds())) return;
+
+    loading = true;
+    loadedAd = null;
+    // Sécurité : si Google ne répond jamais, on libère le verrou après 15 secondes.
+    setTimeout(() => {
+      loading = false;
+    }, 15000);
+
+    const { InterstitialAd, AdEventType } = m;
+    const ad = InterstitialAd.createForAdRequest(ADS.interstitialUnitId);
+    const offs: (() => void)[] = [];
+    const cleanup = () => offs.forEach((off) => off());
+    offs.push(
+      ad.addAdEventListener(AdEventType.LOADED, () => {
+        loadedAd = ad;
+        loadedAt = Date.now();
+        loading = false;
+      }),
+      ad.addAdEventListener(AdEventType.ERROR, () => {
+        loadedAd = null;
+        loading = false;
+        cleanup();
+      }),
+      ad.addAdEventListener(AdEventType.CLOSED, () => {
+        loadedAd = null;
+        cleanup();
+      }),
+    );
+    ad.load();
+  } catch {
+    loading = false;
+  }
+}
+
+// Montre la pub préparée si les règles le permettent. Attend au plus 2,5 secondes une pub encore en chargement.
+// Ne bloque jamais l'app : sans pub prête, il ne se passe rien.
 export async function showInterstitialIfDue(completedFasts: number): Promise<void> {
   try {
     const m = getAds();
     if (!m) return;
-    if (completedFasts < ADS.freeFasts) return;
-    const last = Number(await AsyncStorage.getItem(LAST_AD_KEY)) || 0;
-    if (Date.now() - last < ADS.cooldownHours * 3600000) return;
-    if (!(await initAds())) return;
+    if (!(await isDue(completedFasts))) return;
 
-    const { InterstitialAd, AdEventType } = m;
-    const ad = InterstitialAd.createForAdRequest(ADS.interstitialUnitId);
+    const start = Date.now();
+    while (!isFresh() && loading && Date.now() - start < WAIT_FOR_LOAD_MS) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    if (!isFresh()) {
+      void prepareInterstitial(completedFasts);
+      return;
+    }
 
-    await new Promise<void>((resolve) => {
-      let settled = false;
-      const offs: (() => void)[] = [];
-      const finish = () => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        offs.forEach((off) => off());
-        resolve();
-      };
-      const timer = setTimeout(finish, LOAD_TIMEOUT_MS);
-
-      offs.push(
-        ad.addAdEventListener(AdEventType.LOADED, () => {
-          if (settled) return;
-          clearTimeout(timer);
-          AsyncStorage.setItem(LAST_AD_KEY, String(Date.now())).catch(() => {});
-          ad.show().catch(finish);
-        }),
-        ad.addAdEventListener(AdEventType.CLOSED, finish),
-        ad.addAdEventListener(AdEventType.ERROR, finish),
-      );
-      ad.load();
-    });
+    const ad = loadedAd;
+    loadedAd = null;
+    await AsyncStorage.setItem(LAST_AD_KEY, String(Date.now()));
+    await ad.show();
   } catch {
     // Une pub qui échoue ne doit jamais gêner l'utilisateur.
   }
